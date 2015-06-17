@@ -1,0 +1,65 @@
+body,html{height: 100%;padding: 0;margin: 0;}
+body,textarea{  font-family:Consolas, 'Lucida Console', monospace; font-size: 12px;}
+body{
+    box-sizing: border-box;
+    padding: 10px;
+    background: #eee;
+}
+.outp{
+    width: 50%;    
+    height: 90%;    
+    padding: 20px 10px 10px;                
+    box-sizing: border-box;
+    position: relative;
+}
+textarea{
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: none;
+    overflow: auto;
+}
+.outp1{
+    float: left;
+}
+.outp1:before,.outp2:before{position:absolute;top: 0px;}
+.outp1:before{
+    content: "HTML";
+}
+.outp2{
+    float: right;
+}
+.outp2:before{
+    content: "CSS";
+}
+form{
+    clear: both;
+    padding: 0px 10px;
+    display: none;
+}
+.pop{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.77);
+    display: none;
+}
+.pop p{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    height: 40px;
+    margin: auto;
+    font-size: 30px;
+}
+button{
+    margin-left: 10px;
+}
