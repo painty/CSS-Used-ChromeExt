@@ -1,7 +1,7 @@
 function getC($0) {
 
     function convertLink(callback) {
-        var links = document.querySelectorAll('link[rel="stylesheet"][href]');
+        var links = document.querySelectorAll('link[rel="stylesheet"][href]:not([ajaxRulesByCssUsed])');
         var loadedExternalCss = 0;
         if (links.length === 0) {
             callback();
@@ -19,13 +19,15 @@ function getC($0) {
                             } else {
                                 decoder = new TextDecoder('gbk');
                             };
-                            href=links[i].href;
-                            links[i].removeAttribute('href');
-                            links[i].setAttribute('hrefbak', href);
-                            cssel=document.createElement('style');
-                            cssel.innerText=decoder.decode(x.response);
-                            links[i].parentNode.insertBefore(cssel, links[i].nextSibling);
-                            cssel.href=href;
+                            // href=links[i].href;
+                            // links[i].removeAttribute('href');
+                            // links[i].setAttribute('hrefbak', href);
+                            // cssel=document.createElement('style');
+                            // cssel.innerText=decoder.decode(x.response);
+                            // links[i].parentNode.insertBefore(cssel, links[i].nextSibling);
+                            // cssel.href=href;
+                            links[i].ajaxRules=rulesForCssText(decoder.decode(x.response));
+                            links[i].setAttribute('ajaxRulesByCssUsed','loaded');
                             loadedExternalCss++;
                             if (loadedExternalCss === links.length) {
                                 callback();
@@ -37,6 +39,20 @@ function getC($0) {
                 })(i)
             };
         }
+    }
+
+    function rulesForCssText(styleContent) {
+        var doc = document,//.implementation.createHTMLDocument(""),
+            styleElement = document.createElement("style"),
+            resultCssRules;
+
+        styleElement.textContent = styleContent;
+        // the style will only be parsed once it is added to a document
+        doc.body.appendChild(styleElement);
+        resultCssRules=styleElement.sheet.cssRules;
+        doc.body.removeChild(styleElement);
+
+        return resultCssRules;
     }
 
     function getCssTxt(ele){
@@ -52,7 +68,7 @@ function getC($0) {
 
         // check every css rule
         for (x = 0; x < document.styleSheets.length; x++) {
-            rules = document.styleSheets[x].cssRules;
+            rules = document.styleSheets[x].ownerNode.ajaxRules || document.styleSheets[x].cssRules;
             if (rules === null) {
                 arrCss.push('/* rules null of stylesheet'+(x+1)+'/'+document.styleSheets.length+'*/\n');
                 continue;
