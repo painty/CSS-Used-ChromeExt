@@ -4,7 +4,7 @@ Get all css rules used by the selected DOM and its children.
 
 ![CSS Used](http://ww1.sinaimg.cn/large/4e71f332gw1et7h243kgqj203k03ka9v.jpg)
 
-[CSS Used on Chrome Web Store](https://chrome.google.com/webstore/detail/css-used/cdopjfddjlonogibjahpnmjpoangjfff)
+[CSS Used for Chrome](https://chrome.google.com/webstore/detail/css-used/cdopjfddjlonogibjahpnmjpoangjfff)
 
 ## Overview
 
