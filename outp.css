@@ -24,6 +24,7 @@ textarea{
 }
 .outp1{
     float: left;
+    display: none;
 }
 .outp1:before,.outp2:before{position:absolute;top: 0px;}
 .outp1:before{
@@ -31,6 +32,7 @@ textarea{
 }
 .outp2{
     float: right;
+    width: 100%;
 }
 .outp2:before{
     content: "CSS";
