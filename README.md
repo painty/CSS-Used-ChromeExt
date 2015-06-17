@@ -1,6 +1,8 @@
-# CSS-Used-ChromeExt
+# CSS-Used
 
 Get all css rules used by the selected DOM and its children.
+
+![CSS Used](http://ww1.sinaimg.cn/large/4e71f332gw1et7h243kgqj203k03ka9v.jpg)
 
 [CSS Used on Chrome Web Store](https://chrome.google.com/webstore/detail/css-used/cdopjfddjlonogibjahpnmjpoangjfff)
 
@@ -12,7 +14,7 @@ If the selected DOM is the body, the result will be all the used css by the whol
 
 ## Usage
 
-![How to use](http://ww3.sinaimg.cn/large/4e71f332gw1et7fclsja6g20ku0ime81.gif)
+![How to use](http://ww2.sinaimg.cn/large/4e71f332gw1et7h0w4hxdg20i20go1kx.gif)
 F12 open the Developer Tools, select the dom and active the "CSS Used" pannel. The used CSS rules of the Selected dom and its children's will be listed in the right textare.
 
 You can click "Preview" to see the selected part with clean style rules.
