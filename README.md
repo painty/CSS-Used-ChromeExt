@@ -25,6 +25,14 @@ As for the CSS rule like `.wrap p{...}`, if only `<p>` is selected, the result `
 
 Either changing this rule's selector to `p{...}` or giving the `<p>` a `.wrap` parent in the final HTML.
 
+## Update
+
+**1.3** Convert all background image url to absolute path.
+
+**1.2** The link tag is preserved now.
+
+**1.1.5** Keyframe animation extract is now supported.
+
 ## To Do
 
 When the selected dom is not in the main frame.
