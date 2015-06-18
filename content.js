@@ -11,7 +11,7 @@ function getC($0) {
                     var x = new XMLHttpRequest();
                     x.responseType = 'arraybuffer';
                     x.onreadystatechange = function() {
-                        var href,cssel;
+                        // var href,cssel;
                         if (x.readyState === 4) {
                             var decoder;
                             if (isutf8(new Uint8Array(x.response))) {
@@ -26,7 +26,12 @@ function getC($0) {
                             // cssel.innerText=decoder.decode(x.response);
                             // links[i].parentNode.insertBefore(cssel, links[i].nextSibling);
                             // cssel.href=href;
-                            links[i].ajaxRules=rulesForCssText(decoder.decode(x.response));
+                            links[i].ajaxRules = rulesForCssText(
+                                                    decoder.decode(x.response)
+                                                    .replace(/url\((.*?)\)/g,function(a,p1){
+                                                        return 'url('+convUrlToAbs(links[i].href,p1)+')';
+                                                    })
+                                                 );
                             links[i].setAttribute('ajaxRulesByCssUsed','loaded');
                             loadedExternalCss++;
                             if (loadedExternalCss === links.length) {
@@ -49,15 +54,29 @@ function getC($0) {
         styleElement.textContent = styleContent;
         // the style will only be parsed once it is added to a document
         doc.body.appendChild(styleElement);
-        resultCssRules=styleElement.sheet.cssRules;
+        resultCssRules=styleElement.sheet;
         doc.body.removeChild(styleElement);
-
         return resultCssRules;
+    }
+
+    function convUrlToAbs(baseURI,url){
+        var _baseURI=new URI(baseURI),
+            _url=new URI(url);
+        if(url.match(/^\//)){
+            return _baseURI.protocol()+'://'+_baseURI.hostname()+url;
+        };
+        if(_url.is('relative')){
+            return _baseURI.protocol()+'://'+_baseURI.hostname()+_baseURI.directory()+'/'+url;
+        };
+        if(_url.is('absolute')){
+            return url;
+        };
     }
 
     function getCssTxt(ele){
         var _ele, arr = [], arrCss=[], arrSel, arrSelMatched, domlist=[],
             rules, keyFram=[], keyFramUsed=[],
+            baseURI,
             x, i, j, k;
 
         // collect all the selected element and its children
@@ -68,7 +87,8 @@ function getC($0) {
 
         // check every css rule
         for (x = 0; x < document.styleSheets.length; x++) {
-            rules = document.styleSheets[x].ownerNode.ajaxRules || document.styleSheets[x].cssRules;
+            baseURI=document.styleSheets[x].ownerNode.href || document.styleSheets[x].ownerNode.baseURI;
+            rules = (document.styleSheets[x].ownerNode.ajaxRules && document.styleSheets[x].ownerNode.ajaxRules.cssRules) || document.styleSheets[x].cssRules;
             if (rules === null) {
                 arrCss.push('/* rules null of stylesheet'+(x+1)+'/'+document.styleSheets.length+'*/\n');
                 continue;
@@ -92,8 +112,16 @@ function getC($0) {
                 for(j = 0, length2 = arrSel.length; j < length2; j++){
                     for(k = 0, length3 = domlist.length; k < length3; k++){
                         _ele=domlist[k];
-                        if ( _ele.matches(arrSel[j].replace(/::?(hover|after|before)/g, '')) ){
+                        if(arrSel[j].match(/^:(active|visited)$/)){
                             arrSelMatched.push(arrSel[j]);
+                        }else {
+                            try{
+                                if ( _ele.matches(arrSel[j].replace(/::?(hover|after|before|active|link)/g, '')) ){
+                                    arrSelMatched.push(arrSel[j]);
+                                }
+                            }catch(e){
+                                // console.log(e);
+                            }
                         }
                     }
                 }
@@ -104,7 +132,12 @@ function getC($0) {
                 });
 
                 if(arrSelMatched.length>0){
-                    arrCss.push(rules[i].cssText.replace(rules[i].selectorText, arrSelMatched.join(','))+'\n');
+                    arrCss.push(rules[i].cssText
+                                .replace(rules[i].selectorText, arrSelMatched.join(','))
+                                // .replace(/url\((.*?)\)/g,function(a,p1){
+                                //     return 'url('+convUrlToAbs(baseURI,p1)+')';
+                                // })
+                                +'\n');
                     if(rules[i].style.animationName){
                         keyFramUsed.push(rules[i].style.animationName.split(', '));
                     };
@@ -126,7 +159,7 @@ function getC($0) {
         return arrCss;
     }
 
-    // 颜色值rgb→hex
+    // color  rgb→hex
     function handleCssTxt() {
         var arr = getCssTxt($0),
             obj = {},
