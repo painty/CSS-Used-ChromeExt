@@ -64,6 +64,9 @@ function getC($0) {
         url=url.replace(quote,'$1');
         var _baseURI=new URI(baseURI),
             _url=new URI(url);
+        if(url.match(/^\/\//)){
+            return '"'+_baseURI.protocol()+':'+url+'"';
+        };
         if(url.match(/^\//)){
             return '"'+_baseURI.protocol()+'://'+_baseURI.hostname()+url+'"';
         };
