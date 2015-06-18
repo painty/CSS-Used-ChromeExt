@@ -50,8 +50,7 @@ function getC($0) {
         var doc = document,//.implementation.createHTMLDocument(""),
             styleElement = document.createElement("style"),
             resultCssRules;
-
-        styleElement.textContent = styleContent;
+        styleElement.innerText = styleContent;
         // the style will only be parsed once it is added to a document
         doc.body.appendChild(styleElement);
         resultCssRules=styleElement.sheet;
@@ -60,23 +59,38 @@ function getC($0) {
     }
 
     function convUrlToAbs(baseURI,url){
+        var quote=/^['"]*(.*?)['"]*$/;
+        baseURI=baseURI.replace(quote,'$1');
+        url=url.replace(quote,'$1');
         var _baseURI=new URI(baseURI),
             _url=new URI(url);
         if(url.match(/^\//)){
-            return _baseURI.protocol()+'://'+_baseURI.hostname()+url;
+            return '"'+_baseURI.protocol()+'://'+_baseURI.hostname()+url+'"';
         };
         if(_url.is('relative')){
-            return _baseURI.protocol()+'://'+_baseURI.hostname()+_baseURI.directory()+'/'+url;
+            return '"'+_baseURI.protocol()+'://'+_baseURI.hostname()+_baseURI.directory()+'/'+url+'"';
         };
         if(_url.is('absolute')){
-            return url;
+            return '"'+url+'"';
         };
+    }
+
+    // cssText won't show background-size
+    // even it is in the css file
+    // but -webkit-background-size do
+    function chromeBugFix(rule){
+        var bas=rule.style.backgroundSize;
+        if(bas!=="initial" && bas!==""){
+            return 'background-size:'+bas+';}';
+        }else{
+            return '}';
+        }
     }
 
     function getCssTxt(ele){
         var _ele, arr = [], arrCss=[], arrSel, arrSelMatched, domlist=[],
             rules, keyFram=[], keyFramUsed=[],
-            baseURI,
+            // baseURI,
             x, i, j, k;
 
         // collect all the selected element and its children
@@ -87,7 +101,7 @@ function getC($0) {
 
         // check every css rule
         for (x = 0; x < document.styleSheets.length; x++) {
-            baseURI=document.styleSheets[x].ownerNode.href || document.styleSheets[x].ownerNode.baseURI;
+            // baseURI=document.styleSheets[x].ownerNode.href || document.styleSheets[x].ownerNode.baseURI;
             rules = (document.styleSheets[x].ownerNode.ajaxRules && document.styleSheets[x].ownerNode.ajaxRules.cssRules) || document.styleSheets[x].cssRules;
             if (rules === null) {
                 arrCss.push('/* rules null of stylesheet'+(x+1)+'/'+document.styleSheets.length+'*/\n');
@@ -134,9 +148,9 @@ function getC($0) {
                 if(arrSelMatched.length>0){
                     arrCss.push(rules[i].cssText
                                 .replace(rules[i].selectorText, arrSelMatched.join(','))
-                                // .replace(/url\((.*?)\)/g,function(a,p1){
-                                //     return 'url('+convUrlToAbs(baseURI,p1)+')';
-                                // })
+                                .replace(/\}$/,function(){
+                                    return chromeBugFix(rules[i])
+                                })
                                 +'\n');
                     if(rules[i].style.animationName){
                         keyFramUsed.push(rules[i].style.animationName.split(', '));
