@@ -155,11 +155,11 @@ function getC($0) {
                     // but wont apply now 
                     // eg. :active{xxx}
                     // only works when clicked on and actived
-                    if(arrSel[j].match(new RegExp('^:(('+pseudocls+')|(:?'+pseudoele+'))$',''))){
+                    if(arrSel[j].match(new RegExp('^:(('+pseudocls+')|(:?'+pseudoele+'))*$',''))){
                         arrSelMatched.push(arrSel[j]);
                     }else {
                         try{
-                            if ( _ele.matches(arrSel[j].replace(new RegExp('^:(('+pseudocls+')|(:?'+pseudoele+'))$','g'), '')) ){
+                            if ( _ele.matches(arrSel[j].replace(new RegExp(':(('+pseudocls+')|(:?'+pseudoele+'))*','g'), '')) ){
                                 arrSelMatched.push(arrSel[j]);
                             }
                         }catch(e){
