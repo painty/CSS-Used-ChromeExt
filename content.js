@@ -136,9 +136,11 @@ function getC($0) {
 
             // CSSImportRule
             if(rules[i].type===3){
-                childRules=getCssTxt(rules[i].styleSheet.cssRules);
-                if(childRules.length>0){
-                    arrCss=arrCss.concat(childRules);
+                if(rules[i].styleSheet&&rules[i].styleSheet.cssRules){
+                    childRules=getCssTxt(rules[i].styleSheet.cssRules);
+                    if(childRules.length>0){
+                        arrCss=arrCss.concat(childRules);
+                    }
                 }
                 continue;
             };
