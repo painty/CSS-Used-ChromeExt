@@ -1,3 +1,6 @@
+**ver 1.4.1 | 04/09/2017** 
+1. multiple pseudo class/element detection
+
 **ver 1.4.0 | 04/09/2017** 
 
 1. Add. media query support
