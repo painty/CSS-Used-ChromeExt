@@ -1,4 +1,9 @@
 function getC($0) {
+    var domlist=[];
+    domlist.push($0);
+    Array.prototype.forEach.call($0.querySelectorAll('*'),function(e){
+        domlist.push(e);
+    });
 
     function convertLink(callback) {
         var links = document.querySelectorAll('link[rel="stylesheet"][href]:not([ajaxRulesByCssUsed])');
@@ -90,103 +95,159 @@ function getC($0) {
         }
     }
 
-    function getCssTxt(ele){
-        var _ele, arr = [], arrCss=[], arrSel, arrSelMatched, domlist=[],
-            rules, keyFram=[], keyFramUsed=[],
+    function getCssTxt(rules){
+        if(rules===null) return [];
+        var _ele, arrCss=[], arrSel, arrSelMatched,
+            rules, keyFram=[], keyFramUsed=[],font=[], fontUsed=[],
             // baseURI,
-            x, i, j, k;
+            childRules='',
+            i, j, k;
 
+        // may match accoding to interaction
+        var pseudocls='active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
+            pseudoele='after|before|first-letter|first-line|selection';
         // collect all the selected element and its children
-        domlist.push(ele);
-        Array.prototype.forEach.call(ele.querySelectorAll('*'),function(e){
-            domlist.push(e);
-        });
+        
+
+        for (i = 0; i < rules.length; i++) {
+
+            // CSSKeyframesRule
+            if(rules[i].type===7){
+                keyFram.push(rules[i]);
+                continue;
+            };
+
+            // CSSFontFaceRule
+            if(rules[i].type===5){
+                font.push(rules[i]);
+                continue;
+            };
+
+            // CSSMediaRule
+            if(rules[i].type===4){
+                childRules=getCssTxt(rules[i].cssRules);
+                if(childRules.length>0){
+                    arrCss.push('\n@media '+rules[i].conditionText+'{\n');
+                    arrCss=arrCss.concat(childRules);
+                    arrCss.push('}\n');
+                }
+                continue;
+            };
+
+            // CSSImportRule
+            if(rules[i].type===3){
+                childRules=getCssTxt(rules[i].styleSheet.cssRules);
+                if(childRules.length>0){
+                    arrCss=arrCss.concat(childRules);
+                }
+                continue;
+            };
+
+            if(!rules[i].selectorText) continue;
+            // the normal "CSSStyleRule"
+
+            arrSel=rules[i].selectorText.split(', ');
+            arrSelMatched=[];
+            for(j = 0, length2 = arrSel.length; j < length2; j++){
+                for(k = 0, length3 = domlist.length; k < length3; k++){
+                    _ele=domlist[k];
+                    // these pseudo class/elements can apply to any ele
+                    // but wont apply now 
+                    // eg. :active{xxx}
+                    // only works when clicked on and actived
+                    if(arrSel[j].match(new RegExp('^:(('+pseudocls+')|(:?'+pseudoele+'))$',''))){
+                        arrSelMatched.push(arrSel[j]);
+                    }else {
+                        try{
+                            if ( _ele.matches(arrSel[j].replace(new RegExp('^:(('+pseudocls+')|(:?'+pseudoele+'))$','g'), '')) ){
+                                arrSelMatched.push(arrSel[j]);
+                            }
+                        }catch(e){
+                            // console.log(e);
+                        }
+                    }
+                }
+            }
+
+            // remove duplicate selector
+            arrSelMatched=arrSelMatched.filter(function(v,i,self){
+                return self.indexOf(v)===i;
+            });
+
+            if(arrSelMatched.length>0){
+                arrCss.push(rules[i].cssText
+                            .replace(rules[i].selectorText, arrSelMatched.join(','))
+                            .replace(/\}$/,function(){
+                                return chromeBugFix(rules[i])
+                            })
+                            +'\n');
+                if(rules[i].style.animationName){
+                    keyFramUsed.push(rules[i].style.animationName.split(', '));
+                };
+                if(rules[i].style.fontFamily){
+                    fontUsed.push(rules[i].style.fontFamily.split(', '));
+                };
+            };
+        }
+
+        // find used keyframe defination
+        for (i = 0; i < keyFram.length; i++) {
+            for (j = 0; j < keyFramUsed.length; j++) {
+                for (k = 0; k < keyFramUsed[j].length; k++) {
+                    if(keyFram[i].name===keyFramUsed[j][k]){
+                        arrCss.push('\n'+keyFram[i].cssText+'\n');
+                    };
+                };
+            };
+        };
+
+        // find used fontface defination
+        for (i = 0; i < font.length; i++) {
+            for (j = 0; j < fontUsed.length; j++) {
+                for (k = 0; k < fontUsed[j].length; k++) {
+                    if(font[i].style.fontFamily===fontUsed[j][k]){
+                        arrCss.push('\n'+font[i].cssText+'\n');
+                    };
+                };
+            };
+        };
+        return arrCss;
+    }
+
+    // color  rgb→hex
+    function handleCssTxt() {
+        var arr = [],arrtemp=[],
+            // obj = {},
+            s = '',
+            x,i,rules;
 
         // check every css rule
         for (x = 0; x < document.styleSheets.length; x++) {
             // baseURI=document.styleSheets[x].ownerNode.href || document.styleSheets[x].ownerNode.baseURI;
             rules = (document.styleSheets[x].ownerNode.ajaxRules && document.styleSheets[x].ownerNode.ajaxRules.cssRules) || document.styleSheets[x].cssRules;
             if (rules === null) {
-                arrCss.push('/* rules null of stylesheet'+(x+1)+'/'+document.styleSheets.length+'*/\n');
+                arr.push('/* rules null of stylesheet'+(x+1)+'/'+document.styleSheets.length+'*/\n');
                 continue;
             };
 
-            // annotion where the CSS rule from
-            arrCss.push('\n/*stylesheet '+(x+1)+'/'+document.styleSheets.length +' | '+ (document.styleSheets[x].ownerNode.href ? document.styleSheets[x].ownerNode.href:'inline') +'*/\n');
-
-            for (i = 0; i < rules.length; i++) {
-
-                // CSSKeyframesRule
-                if(rules[i].name){
-                    keyFram.push(rules[i]);
-                    continue;
-                };
-
-                if(!rules[i].selectorText) continue;
-
-                arrSel=rules[i].selectorText.split(', ');
-                arrSelMatched=[];
-                for(j = 0, length2 = arrSel.length; j < length2; j++){
-                    for(k = 0, length3 = domlist.length; k < length3; k++){
-                        _ele=domlist[k];
-                        if(arrSel[j].match(/^:(active|visited)$/)){
-                            arrSelMatched.push(arrSel[j]);
-                        }else {
-                            try{
-                                if ( _ele.matches(arrSel[j].replace(/::?(hover|after|before|active|link)/g, '')) ){
-                                    arrSelMatched.push(arrSel[j]);
-                                }
-                            }catch(e){
-                                // console.log(e);
-                            }
-                        }
-                    }
-                }
-
-                // remove duplicate selector
-                arrSelMatched=arrSelMatched.filter(function(v,i,self){
-                    return self.indexOf(v)===i;
-                });
-
-                if(arrSelMatched.length>0){
-                    arrCss.push(rules[i].cssText
-                                .replace(rules[i].selectorText, arrSelMatched.join(','))
-                                .replace(/\}$/,function(){
-                                    return chromeBugFix(rules[i])
-                                })
-                                +'\n');
-                    if(rules[i].style.animationName){
-                        keyFramUsed.push(rules[i].style.animationName.split(', '));
-                    };
-                };
+            arrtemp=getCssTxt(rules);
+            if(arrtemp.length>0){
+                // annotion where the CSS rule from
+                arr.push('\n/*stylesheet '+(x+1)+'/'+document.styleSheets.length +' | '+ (document.styleSheets[x].ownerNode.href ? document.styleSheets[x].ownerNode.href:'inline') +'*/\n');
+                arr=arr.concat(arrtemp);
             }
-        }
-
-        // find used keyframe defination
-        for (var i = 0; i < keyFram.length; i++) {
-            for (j = 0; j < keyFramUsed.length; j++) {
-                for (k = 0; k < keyFramUsed[j].length; k++) {
-                    if(keyFram[i].name===keyFramUsed[j][k]){
-                        arrCss.push(keyFram[i].cssText);
-                    };
-                };
-            };
         };
 
-        return arrCss;
-    }
-
-    // color  rgb→hex
-    function handleCssTxt() {
-        var arr = getCssTxt($0),
-            obj = {},
-            s = '';
-        for (var x = 0; x < arr.length; x++) {
+        /*
+        //remove duplicate rules,not necessary
+        for (x = 0; x < arr.length; x++) {
             obj[arr[x]] = true;
         };
         for (i in obj) {
             s += i;
         }
+        */
+        s=arr.join('');
         s = s.replace(/ rgb\((\d{1,3}), (\d{1,3}), (\d{1,3})\)/g, function(a, p1, p2, p3) {
             function to2w(n){
                 var s=(n * 1).toString(16);
