@@ -1,3 +1,6 @@
+**ver 1.4.2 | 04/15/2017** 
+1. Add. calculating progress display.
+
 **ver 1.4.1 | 04/09/2017** 
 1. multiple pseudo class/element detection
 

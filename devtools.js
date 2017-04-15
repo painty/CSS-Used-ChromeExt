@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-var outp1, outp2, pop, evalGetc, sidebarvisible=false;
+var outp1, outp2, pop,tips, evalGetc, sidebarvisible=false;
 // The function below is executed in the context of the inspected page.
 function page_getProperties() {
     var data={};
@@ -32,6 +32,7 @@ chrome.devtools.panels.elements.createSidebarPane(
             outp1=win.document.body.querySelector('#outp1');
             outp2=win.document.body.querySelector('#outp2');
             pop=win.document.body.querySelector('#pop');
+            tips=win.document.body.querySelector('#pop p');
             input=win.document.body.querySelector('input[name=data]');
             evalGetc();
         });
@@ -53,11 +54,19 @@ backgroundPageConnection.postMessage({
 });
 
 backgroundPageConnection.onMessage.addListener(function (message, sender, sendResponse) {
-    outp1.value=message.html;
-    outp2.value=message.css;
-    outp2.select();
-    input.value=JSON.stringify(message);
-    pop.style.display='none';
-    // SideBar.setExpression(message.result);
-    // document.getElementById('outp').value=message.result;
+    if(message.cssloading!==undefined){
+        tips.innerHTML='Getting the external CSS:'+message.cssloading;
+        pop.style.display='block';
+    }else if(message.css===undefined){
+        tips.innerHTML='The selected dom has '+message.dom+(message.dom>0?' children':' child')+'.<br>Traversing stylesheets:'+message.sheet+', rules:'+message.rule;
+        pop.style.display='block';
+    }else{
+        outp1.value=message.html;
+        outp2.value=message.css;
+        outp2.select();
+        input.value=JSON.stringify(message);
+        pop.style.display='none';
+        // SideBar.setExpression(message.result);
+        // document.getElementById('outp').value=message.result;
+    }
 })

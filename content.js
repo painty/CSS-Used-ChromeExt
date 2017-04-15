@@ -1,4 +1,5 @@
 function getC($0) {
+    // console.log('Now get');
     var domlist=[];
     domlist.push($0);
     Array.prototype.forEach.call($0.querySelectorAll('*'),function(e){
@@ -39,6 +40,9 @@ function getC($0) {
                                                  );
                             links[i].setAttribute('ajaxRulesByCssUsed','loaded');
                             loadedExternalCss++;
+                            chrome.runtime.sendMessage({
+                                cssloading:loadedExternalCss+'/'+links.length,
+                            });
                             if (loadedExternalCss === links.length) {
                                 callback();
                             }
@@ -95,7 +99,7 @@ function getC($0) {
         }
     }
 
-    function getCssTxt(rules){
+    function getCssTxt(rules,nowSheet){
         if(rules===null) return [];
         var _ele, arrCss=[], arrSel, arrSelMatched,
             rules, keyFram=[], keyFramUsed=[],font=[], fontUsed=[],
@@ -111,6 +115,12 @@ function getC($0) {
 
         for (i = 0; i < rules.length; i++) {
 
+            chrome.runtime.sendMessage({
+                dom:domlist.length-1,
+                rule:i,
+                sheet:nowSheet
+            });
+
             // CSSKeyframesRule
             if(rules[i].type===7){
                 keyFram.push(rules[i]);
@@ -125,7 +135,7 @@ function getC($0) {
 
             // CSSMediaRule
             if(rules[i].type===4){
-                childRules=getCssTxt(rules[i].cssRules);
+                childRules=getCssTxt(rules[i].cssRules,nowSheet);
                 if(childRules.length>0){
                     arrCss.push('\n@media '+rules[i].conditionText+'{\n');
                     arrCss=arrCss.concat(childRules);
@@ -137,7 +147,7 @@ function getC($0) {
             // CSSImportRule
             if(rules[i].type===3){
                 if(rules[i].styleSheet&&rules[i].styleSheet.cssRules){
-                    childRules=getCssTxt(rules[i].styleSheet.cssRules);
+                    childRules=getCssTxt(rules[i].styleSheet.cssRules,nowSheet);
                     if(childRules.length>0){
                         arrCss=arrCss.concat(childRules);
                     }
@@ -153,6 +163,7 @@ function getC($0) {
             for(j = 0, length2 = arrSel.length; j < length2; j++){
                 for(k = 0, length3 = domlist.length; k < length3; k++){
                     _ele=domlist[k];
+
                     // these pseudo class/elements can apply to any ele
                     // but wont apply now 
                     // eg. :active{xxx}
@@ -232,7 +243,7 @@ function getC($0) {
                 continue;
             };
 
-            arrtemp=getCssTxt(rules);
+            arrtemp=getCssTxt(rules,x+'/'+document.styleSheets.length);
             if(arrtemp.length>0){
                 // annotion where the CSS rule from
                 arr.push('\n/*stylesheet '+(x+1)+'/'+document.styleSheets.length +' | '+ (document.styleSheets[x].ownerNode.href ? document.styleSheets[x].ownerNode.href:'inline') +'*/\n');

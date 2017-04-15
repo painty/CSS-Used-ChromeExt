@@ -51,16 +51,14 @@ form{
     text-align: center;
     background: rgba(255, 255, 255, 0.77);
     display: none;
+    font-size: 0px;
 }
+.pop:after{content:'';width: 0px;height: 100%;display: inline-block;vertical-align: middle;}
 .pop p{
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
-    height: 40px;
     margin: auto;
-    font-size: 30px;
+    font-size: 12px;
+    display: inline-block;
+    vertical-align: middle;
 }
 button{
     margin-left: 10px;
