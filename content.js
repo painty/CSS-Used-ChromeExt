@@ -99,7 +99,25 @@ function getC($0) {
         }
     }
 
-    function getCssTxt(rules,nowSheet){
+    function calcRuleMatch(arrSel,j,pseudocls,pseudoele,_ele){
+        return new Promise(function(resolve, reject) {
+            setTimeout(function(){
+                if(arrSel[j].match(new RegExp('^:(('+pseudocls+')|(:?'+pseudoele+'))*$',''))){
+                    resolve(arrSel[j]);
+                }else {
+                    try{
+                        if ( _ele.matches(arrSel[j].replace(new RegExp(':(('+pseudocls+')|(:?'+pseudoele+'))*','g'), '')) ){
+                            resolve(arrSel[j]);
+                        }
+                    }catch(e){
+                        // console.log(e);
+                    }
+                }
+            }, 10);
+        });
+    }
+
+    async function getCssTxt(rules,nowSheet){
         if(rules===null) return [];
         var _ele, arrCss=[], arrSel, arrSelMatched,
             rules, keyFram=[], keyFramUsed=[],font=[], fontUsed=[],
@@ -168,17 +186,8 @@ function getC($0) {
                     // but wont apply now 
                     // eg. :active{xxx}
                     // only works when clicked on and actived
-                    if(arrSel[j].match(new RegExp('^:(('+pseudocls+')|(:?'+pseudoele+'))*$',''))){
-                        arrSelMatched.push(arrSel[j]);
-                    }else {
-                        try{
-                            if ( _ele.matches(arrSel[j].replace(new RegExp(':(('+pseudocls+')|(:?'+pseudoele+'))*','g'), '')) ){
-                                arrSelMatched.push(arrSel[j]);
-                            }
-                        }catch(e){
-                            // console.log(e);
-                        }
-                    }
+                    arrSelMatched.push(await calcRuleMatch(arrSel,j,pseudocls,pseudoele,_ele));
+                    console.log(await calcRuleMatch(arrSel,j,pseudocls,pseudoele,_ele));
                 }
             }
 
@@ -224,6 +233,7 @@ function getC($0) {
                 };
             };
         };
+
         return arrCss;
     }
 
