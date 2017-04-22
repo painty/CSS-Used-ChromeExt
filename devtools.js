@@ -54,8 +54,11 @@ backgroundPageConnection.postMessage({
 });
 
 backgroundPageConnection.onMessage.addListener(function (message, sender, sendResponse) {
-    if(message.cssloading!==undefined){
-        tips.innerHTML='Getting the external CSS:'+message.cssloading;
+    if(message.err!==undefined){
+        tips.innerHTML='ERROR:'+message.err;
+        pop.style.display='block';
+    }else if(message.cssloading!==undefined){
+        tips.innerHTML='Getting external CSS ...<br>'+message.cssloading;
         pop.style.display='block';
     }else if(message.css===undefined){
         tips.innerHTML='The selected dom has '+message.dom+(message.dom>0?' children':' child')+'.<br>Traversing stylesheets:'+message.sheet+', rules:'+message.rule;
