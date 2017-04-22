@@ -200,34 +200,78 @@ function getC($0) {
             err: JSON.stringify(err)
         });
     }).then(function(){
-        generateRulesAll();
+        return generateRulesAll();
         // handleCssTxt();
-    })
+    }).then(function(objCss){ // {fontFace : Array, keyFram : Array, normRule : Array}
+        return testDomMatch(objCss);
+    }).then(function(a){
+        console.log(a);
+    });
+}
+
+function testDomMatch(){
+    var promises = [];
+    var x;
+
+    return new Promise(function (resolve, reject) {
+        // loop every dom
+        for (x = 0; x < domlist.length; x++) {
+            promises.push(new Promise(function (res, rej){
+                
+                    res(obj);
+
+            }));
+        };
+
+        Promise.all(promises).then(function(result) {
+            result.forEach(function(ele){
+                
+            });
+            resolve(xxx);
+        }).catch(function(err) {
+            reject(err);
+        });
+    });
 }
 
 function generateRulesAll(){
-    var x,cssHref,styleSheet,objCss={};
+    var x,styleSheet,objCss={};
 
     objCss.normRule=[];
     objCss.fontFace=[];
     objCss.keyFram=[];
 
-    // loop every styleSheets
-    for (x = 0; x < document.styleSheets.length; x++) {
-        // baseURI=document.styleSheets[x].ownerNode.href || document.styleSheets[x].ownerNode.baseURI;
-        cssHref=document.styleSheets[x].ownerNode.href;
-        styleSheet = (externalCss[cssHref]&&externalCss[cssHref].CSSStyleSheet) || document.styleSheets[x];
-        helper.mergeobjCss(objCss,traversalCSSRuleList(styleSheet));
-    };
-    console.log(objCss);
-    return objCss;
+    var promises = [];
+
+    return new Promise(function (resolve, reject) {
+        // loop every styleSheets
+        for (x = 0; x < document.styleSheets.length; x++) {
+            promises.push(new Promise(function (res, rej){
+                // baseURI=document.styleSheets[x].ownerNode.href || document.styleSheets[x].ownerNode.baseURI;
+                var cssHref=document.styleSheets[x].ownerNode.href;
+                styleSheet = (externalCss[cssHref]&&externalCss[cssHref].CSSStyleSheet) || document.styleSheets[x];
+                traversalCSSRuleList(styleSheet).then(function(obj){
+                    res(obj);
+                })
+            }));
+        };
+
+        Promise.all(promises).then(function(result) {
+            result.forEach(function(ele){
+                helper.mergeobjCss(objCss, ele );
+            });
+            resolve(objCss);
+        }).catch(function(err) {
+            reject(err);
+        });
+    });
 }
 
 helper={
     mergeobjCss:function(a,b){
         ['normRule','fontFace','keyFram'].forEach(function(ele){
             if(!a[ele]||!b[ele]){
-                console.log('NO '+ele);
+                // console.log('NO '+ele);
             }
             a[ele]=a[ele].concat(b[ele])
         });
@@ -235,6 +279,8 @@ helper={
 }
 
 function traversalCSSRuleList(styleSheet){
+    var promises = [];
+
     var objCss={};
     objCss.normRule=[];
     objCss.keyFram=[];
@@ -242,58 +288,95 @@ function traversalCSSRuleList(styleSheet){
 
     var CSSRuleList=styleSheet.cssRules;
 
-    if(CSSRuleList===null){
-        return objCss;
-    }
-
-    // annotion where the CSS rule from
-    if(CSSRuleList.length>0){
-        if(styleSheet.href){
-            objCss.normRule.push('/* CSS Used from: '+styleSheet.href+' */');
-        }else if(styleSheet.ownerNode){
-            objCss.normRule.push('/* CSS Used from: Embedded */');
+    return new Promise(function (resolve, reject) {
+        if(CSSRuleList===null){
+            resolve(objCss);
         }
-    }
 
-    for (var i = 0; i < CSSRuleList.length; i++) {
-
-        // CSSKeyframesRule
-        if (CSSRuleList[i].type === 7) {
-            objCss.keyFram.push(CSSRuleList[i]);
-            continue;
-        };
-
-        // CSSFontFaceRule
-        if (CSSRuleList[i].type === 5) {
-            objCss.fontFace.push(CSSRuleList[i]);
-            continue;
-        };
-
-        // CSSMediaRule
-        if (CSSRuleList[i].type === 4) {
-            objCss.normRule.push('\n@media ' + CSSRuleList[i].conditionText + '{\n');
-            helper.mergeobjCss(objCss, traversalCSSRuleList(CSSRuleList[i]) );
-            objCss.normRule.push('}\n');
-            continue;
-        };
-
-        // CSSImportRule
-        if (CSSRuleList[i].type === 3) {
-
-            console.log(CSSRuleList[i],CSSRuleList[i].href,CSSRuleList[i].styleSheet);
-            
-            if (CSSRuleList[i].styleSheet && CSSRuleList[i].styleSheet.cssRules) {
-                helper.mergeobjCss(objCss, traversalCSSRuleList(CSSRuleList[i]).styleSheet );
+        // annotion where the CSS rule from
+        if(CSSRuleList.length>0){
+            if(styleSheet.href){
+                objCss.normRule.push('/* CSS Used from: '+styleSheet.href+' */');
+            }else if(styleSheet.ownerNode){
+                objCss.normRule.push('/* CSS Used from: Embedded */');
             }
-            continue;
+        }
+
+        for (var i = 0; i < CSSRuleList.length; i++) {
+            (function(CSSRuleListItem){
+                promises.push(new Promise(function (res, rej){
+                    
+                    if (CSSRuleListItem.type === 7) { // CSSKeyframesRule
+                        res({
+                            normRule:[],
+                            keyFram:[CSSRuleListItem],
+                            fontFace:[],
+                        });
+                    }else if (CSSRuleListItem.type === 5) { // CSSFontFaceRule
+                        res({
+                            normRule:[],
+                            keyFram:[],
+                            fontFace:[CSSRuleListItem],
+                        });
+                    }else if (CSSRuleListItem.type === 4) { // CSSMediaRule
+                        traversalCSSRuleList(CSSRuleListItem).then(function(obj){
+                            var _obj={
+                                normRule:[],
+                                keyFram:[],
+                                fontFace:[],
+                            };
+                            _obj.normRule.push('\n@media ' + CSSRuleListItem.conditionText + '{\n');
+                            helper.mergeobjCss(_obj, obj );
+                            _obj.normRule.push('}\n');
+                            res(_obj);
+                        });
+                    }else if (CSSRuleListItem.type === 3) { // CSSImportRule
+                        let href=CSSRuleListItem.href;
+                        if(href){
+                            convLinkToText([href]).then(function(result){
+                                if( Object.prototype.toString.call( result ) === '[object Array]' ){
+                                    let item=result[0];
+                                    item.CSSStyleSheet=convTextToRules(item.cssraw);
+                                    externalCss[item.url] = item;
+                                    traversalCSSRuleList(item.CSSStyleSheet).then(function(obj){
+                                        var _obj={
+                                            normRule:[],
+                                            keyFram:[],
+                                            fontFace:[],
+                                        };
+                                        _obj.normRule.push('/* ' + CSSRuleListItem.cssText + ' */');
+                                        helper.mergeobjCss(_obj, obj );
+                                        res(_obj);
+                                    })
+                                }
+                            })
+                        };
+                    }else if (!CSSRuleListItem.selectorText) {
+                        res({
+                            normRule:[],
+                            keyFram:[],
+                            fontFace:[],
+                        });
+                    }else{ // the normal "CSSStyleRule"
+                        res({
+                            normRule:[CSSRuleListItem],
+                            keyFram:[],
+                            fontFace:[],
+                        })
+                    };
+                }));
+            })(CSSRuleList[i])
         };
 
-        if (!CSSRuleList[i].selectorText) continue;
-        
-        // the normal "CSSStyleRule"
-        objCss.normRule.push(CSSRuleList[i]);
-    }
-    return objCss;
+        Promise.all(promises).then(function(result) {
+            result.forEach(function(ele){
+                helper.mergeobjCss(objCss, ele );
+            })
+            resolve(objCss);
+        }).catch(function(err) {
+            reject(err);
+        });
+    });
 }
 
 function makeRequest(url) {
