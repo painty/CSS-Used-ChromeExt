@@ -209,7 +209,7 @@ function getC($0) {
     });
 }
 
-function testDomMatch(){
+function testDomMatch(objCss){
     var promises = [];
     var x;
 
