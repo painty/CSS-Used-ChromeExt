@@ -17,7 +17,7 @@
     "content_scripts":[
         {
             "matches":["<all_urls>"],
-            "js":["lib/isutf8.js","lib/URI.js","content.js"],
+            "js":["lib/isutf8.js","lib/URI.js","lib/cleancss-browser.js","content.js"],
             "all_frames":true
         }
     ]
