@@ -69,12 +69,13 @@ function testDomMatch(domlist,objCss,localCount){
         objCss.normRule.forEach(function(rule,idx){
             var selMatched=[];
             var arrSel;
-            domlist.forEach(function(element,index){
-                promises.push(new Promise(function (res, rej){
-                    var timer=setTimeout(function(){
+            promises.push(new Promise(function (res, rej){
+                var timer=setTimeout(function(){
+                    for (var i = 0; i < domlist.length; i++) {
+                        let element=domlist[i],index=i;
                         if(localCount!==globalCount){
                             // resolve(matched);
-                            return;
+                            break;
                         }
                         if( (idx*domlist.length+index)%(1000)===0){
                             chrome.runtime.sendMessage({
@@ -85,18 +86,15 @@ function testDomMatch(domlist,objCss,localCount){
                             });
                         }
                         if(typeof rule === 'string'){
-                            if(index===0){
-                                res(rule);
-                            }else{
-                                res([]);
-                            }
+                            res(rule);
+                            break;
                         }else{
                             if(typeof arrSel !== 'object'){
                                 arrSel=rule.selectorText.split(', ').filter(function(v, i, self) {
                                     return self.indexOf(v) === i;
                                 });
                             };
-                            arrSel.some(function(sel,i){
+                            arrSel.forEach(function(sel,i){
                                 if(selMatched.indexOf(sel)!==-1){
                                     return;
                                 }
@@ -120,9 +118,8 @@ function testDomMatch(domlist,objCss,localCount){
                                         console.log(sel,e);
                                     }
                                 }
-                                return selMatched.length===arrSel.length;
                             });
-                            if(selMatched.length!==0 && index===domlist.length-1){
+                            if(selMatched.length===arrSel.length|| (selMatched.length!==0 && index===domlist.length-1)){
                                 res(rule.cssText.replace(rule.selectorText,selMatched.join(',')));
                                 if (rule.style.animationName) {
                                     keyFramUsed=keyFramUsed.concat(rule.style.animationName.split(', '));
@@ -130,14 +127,14 @@ function testDomMatch(domlist,objCss,localCount){
                                 if (rule.style.fontFamily) {
                                     fontFaceUsed=fontFaceUsed.concat(rule.style.fontFamily.split(', '));
                                 };
-                            }else{
-                                res([]);
+                                break;
                             }
                         }
-                    },0);
-                    toList.push(timer);
-                }));
-            });
+                    }
+                    res("");
+                },0);
+                toList.push(timer);
+            }));
         });
 
         Promise.all(promises).then(function(result) {
@@ -148,6 +145,7 @@ function testDomMatch(domlist,objCss,localCount){
                 return self.indexOf(v) === i;
             });
             result.forEach(function(ele){
+                // ele:string
                 if(ele.length>0){
                     matched.push(ele);
                 }
