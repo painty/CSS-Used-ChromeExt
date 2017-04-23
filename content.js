@@ -96,7 +96,7 @@ function testDomMatch(domlist,objCss,localCount){
                                     return self.indexOf(v) === i;
                                 });
                             };
-                            arrSel.forEach(function(sel,i){
+                            arrSel.some(function(sel,i){
                                 if(selMatched.indexOf(sel)!==-1){
                                     return;
                                 }
@@ -108,9 +108,9 @@ function testDomMatch(domlist,objCss,localCount){
                                     selMatched.push(sel);
                                 } else {
                                     try{
-                                        let replacedSel=sel.replace(new RegExp('[ ^\\.\\w](:(' + pseudocls + ')|::?(' + pseudoele + '))+[ $\\.\\w]', 'g'), '');
+                                        let replacedSel=sel.replace(new RegExp('( |^)(:(' + pseudocls + ')|::?(' + pseudoele + '))+( |$)', 'g'), ' * ');
                                         replacedSel=replacedSel.replace(new RegExp('\\((:(' + pseudocls + ')|::?(' + pseudoele + '))+\\)', 'g'), '(*)');
-                                        let replacedSel3=sel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'g'), '');
+                                        replacedSel=replacedSel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'g'), '');
                                         if(element.matches(sel)){
                                             selMatched.push(sel);
                                         }else if(element.matches(replacedSel)){
@@ -120,6 +120,7 @@ function testDomMatch(domlist,objCss,localCount){
                                         console.log(sel,e);
                                     }
                                 }
+                                return selMatched.length===arrSel.length;
                             });
                             if(selMatched.length!==0 && index===domlist.length-1){
                                 res(rule.cssText.replace(rule.selectorText,selMatched.join(',')));
@@ -187,7 +188,17 @@ function generateRulesAll(){
             promises.push(new Promise(function (res, rej){
                 // baseURI=document.styleSheets[x].ownerNode.href || document.styleSheets[x].ownerNode.baseURI;
                 var cssHref=document.styleSheets[x].ownerNode.href;
-                styleSheet = (externalCssCache[cssHref]&&externalCssCache[cssHref].CSSStyleSheet) || document.styleSheets[x];
+                var cssLink=externalCssCache[cssHref]&&externalCssCache[cssHref].CSSStyleSheet;
+                if(cssLink){
+                    styleSheet=cssLink;
+                }else{
+                    styleSheet=document.styleSheets[x];
+                    // convert style tag css url to abs
+                    styleSheet.ownerNode.innerHTML=styleSheet.ownerNode.innerHTML
+                        .replace(/url\((.*?)\)/g, function(a, p1) {
+                            return 'url(' + convUrlToAbs(document.location.href, p1) + ')';
+                        });
+                }
                 traversalCSSRuleList(styleSheet).then(function(obj){
                     res(obj);
                 })
@@ -280,6 +291,10 @@ function postFixCss(s){
         // the last item is empty
         s=s.slice(0,s.length-1);
     };
+
+    while(s[s.length-1].match(/^\/\*\! /)!==null){
+        s=s.slice(0,s.length-1);
+    }
 
     var arr=[],regFrom=/^\/\*\! CSS Used from: /;
     for (var i = 0; i < s.length; i++) {
@@ -474,9 +489,9 @@ function convUrlToAbs(baseURI, url) {
     baseURI = baseURI.replace(quote, '$1');
     url = url.replace(quote, '$1');
     var _baseURI = new URI(baseURI),
-        _url = new URI(url);
-    if(_url.protocol().match(/^(https?)?$/!==null)){
-        return _url.absoluteTo(baseURI)
+        _url = new URI(url);    
+    if(_url.protocol().match(/^(https?)?$/)!==null){
+        return _url.absoluteTo(baseURI)._string
     }else{
         return url
     }

@@ -15,7 +15,7 @@ function page_getProperties() {
 evalGetc=function(stop) {
     if(!sidebarvisible) return;
     pop.style.display='block';
-    tips.innerHTML='...'
+    tips.innerHTML='Preparing ...'
     chrome.devtools.inspectedWindow.eval('getC('+(stop?'':'$0')+')',{
         useContentScriptContext: true
     });
