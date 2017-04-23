@@ -35,7 +35,7 @@ textarea{
     width: 100%;
 }
 .outp2:before{
-    content: "CSS";
+    content: "CSS Used";
 }
 form{
     clear: both;

@@ -1,13 +1,22 @@
-var working = false;
+var globalCount = 0;
 var externalCssCache = {};
+var toList=[]; //store testDomMatch timers
 
 // may match accoding to interaction
 var pseudocls = 'active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
     pseudoele = 'after|before|first-letter|first-line|selection';
 
 function getC($0) {
-    console.log('getC($0)',working);
-    working = true;
+    globalCount++;
+    toList.forEach(function(ele){
+        clearTimeout(ele);
+    });
+    toList=[];
+
+    if(typeof $0 ==='undefined'){
+        return
+    }
+
     var domlist = [];
     domlist.push($0);
     Array.prototype.forEach.call($0.querySelectorAll('*'), function(e) {
@@ -36,16 +45,19 @@ function getC($0) {
         return generateRulesAll();
         // handleCssTxt();
     }).then(function(objCss){ // {fontFace : Array, keyFram : Array, normRule : Array}
-        return testDomMatch(domlist,objCss);
-    }).then(function(a){
+        return testDomMatch(domlist,objCss,globalCount);
+    }).then(function(data){
+        return cleanCSS(data)
+    }).then(function(data){
         chrome.runtime.sendMessage({
-            css: postFixCss(a),
+            css: postFixCss(data.styles),
             html: $0.outerHTML.replace(/<script>[\s\S]*?<\/script>/g,'')
         });
     });
 }
 
-function testDomMatch(domlist,objCss){
+function testDomMatch(domlist,objCss,localCount){
+
     var promises = [];
     var x,y;
     var matched=[];
@@ -55,9 +67,23 @@ function testDomMatch(domlist,objCss){
     return new Promise(function (resolve, reject) {
         // loop every dom
         objCss.normRule.forEach(function(rule,idx){
+            var selMatched=[];
+            var arrSel;
             domlist.forEach(function(element,index){
                 promises.push(new Promise(function (res, rej){
-                    setTimeout(function(){
+                    var timer=setTimeout(function(){
+                        if(localCount!==globalCount){
+                            // resolve(matched);
+                            return;
+                        }
+                        if( (idx*domlist.length+index)%(1000)===0){
+                            chrome.runtime.sendMessage({
+                                dom:domlist.length-1,
+                                domnow:index,
+                                rule:objCss.normRule.length,
+                                rulenow:idx
+                            });
+                        }
                         if(typeof rule === 'string'){
                             if(index===0){
                                 res(rule);
@@ -65,25 +91,29 @@ function testDomMatch(domlist,objCss){
                                 res([]);
                             }
                         }else{
-                            var selMatched=[];
-                            var arrSel=rule.selectorText.split(', ').filter(function(v, i, self) {
-                                return self.indexOf(v) === i;
-                            });
+                            if(typeof arrSel !== 'object'){
+                                arrSel=rule.selectorText.split(', ').filter(function(v, i, self) {
+                                    return self.indexOf(v) === i;
+                                });
+                            };
                             arrSel.forEach(function(sel,i){
+                                if(selMatched.indexOf(sel)!==-1){
+                                    return;
+                                }
                                 // these pseudo class/elements can apply to any ele
                                 // but wont apply now 
                                 // eg. :active{xxx}
                                 // only works when clicked on and actived
                                 if (sel.match(new RegExp('^(:(' + pseudocls + ')|::?(' + pseudoele + '))+$', ''))) {
-                                    if(selMatched.indexOf(sel)===-1){
-                                        selMatched.push(sel);
-                                    }
+                                    selMatched.push(sel);
                                 } else {
                                     try{
-                                        let replacedSel=sel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'g'), '');
+                                        let replacedSel=sel.replace(new RegExp('[ ^\\.\\w](:(' + pseudocls + ')|::?(' + pseudoele + '))+[ $\\.\\w]', 'g'), '');
+                                        replacedSel=replacedSel.replace(new RegExp('\\((:(' + pseudocls + ')|::?(' + pseudoele + '))+\\)', 'g'), '(*)');
+                                        let replacedSel3=sel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'g'), '');
                                         if(element.matches(sel)){
                                             selMatched.push(sel);
-                                        }else if(replacedSel.match(/:not\(\)/)===null && element.matches(replacedSel)){
+                                        }else if(element.matches(replacedSel)){
                                             selMatched.push(sel);
                                         }
                                     }catch(e){
@@ -91,7 +121,7 @@ function testDomMatch(domlist,objCss){
                                     }
                                 }
                             });
-                            if(selMatched.length!==0){
+                            if(selMatched.length!==0 && index===domlist.length-1){
                                 res(rule.cssText.replace(rule.selectorText,selMatched.join(',')));
                                 if (rule.style.animationName) {
                                     keyFramUsed=keyFramUsed.concat(rule.style.animationName.split(', '));
@@ -104,6 +134,7 @@ function testDomMatch(domlist,objCss){
                             }
                         }
                     },0);
+                    toList.push(timer);
                 }));
             });
         });
@@ -174,7 +205,7 @@ function generateRulesAll(){
     });
 }
 
-helper={
+var helper={
     mergeobjCss:function(a,b){
         ['normRule','fontFace','keyFram'].forEach(function(ele){
             if(!a[ele]||!b[ele]){
@@ -185,24 +216,36 @@ helper={
     }
 }
 
-function postFixCss(s){
-    var arr=[],regFrom=/^\/\*\! CSS Used from: /;
-    for (var i = 0; i < s.length; i++) {
-        if(typeof s[i] === 'string'){
-            if( (s[i].match(regFrom)!==null) && ( i+1===s.length || ( (typeof s[i+1] === 'string')&&(s[i+1].match(regFrom)!==null)) )){
-                continue;
-            }else{
-                arr.push(s[i]);
-            }
-        }else{
-            arr.push(s[i]);
-        }
-    }
+function cleanCSS(s){
     s=s.join('');
-    s = s.replace(/(['"']?)微软雅黑\1/,'"Microsoft Yahei"')
-    .replace(/(['"']?)宋体\1/,' simsun ');
 
     var options = {
+        level: {
+            1: {
+                cleanupCharsets: false, // controls `@charset` moving to the front of a stylesheet; defaults to `true`
+                normalizeUrls: true, // controls URL normalization; defaults to `true`
+                optimizeBackground: false, // controls `background` property optimizations; defaults to `true`
+                optimizeBorderRadius: false, // controls `border-radius` property optimizations; defaults to `true`
+                optimizeFilter: false, // controls `filter` property optimizations; defaults to `true`
+                optimizeFont: false, // controls `font` property optimizations; defaults to `true`
+                optimizeFontWeight: false, // controls `font-weight` property optimizations; defaults to `true`
+                optimizeOutline: false, // controls `outline` property optimizations; defaults to `true`
+                removeEmpty: true, // controls removing empty rules and nested blocks; defaults to `true`
+                removeNegativePaddings: true, // controls removing negative paddings; defaults to `true`
+                removeQuotes: true, // controls removing quotes when unnecessary; defaults to `true`
+                removeWhitespace: true, // controls removing unused whitespace; defaults to `true`
+                replaceMultipleZeros: true, // contols removing redundant zeros; defaults to `true`
+                replaceTimeUnits: false, // controls replacing time units with shorter values; defaults to `true`
+                replaceZeroUnits: true, // controls replacing zero values with units; defaults to `true`
+                roundingPrecision: false, // rounds pixel values to `N` decimal places; `false` disables rounding; defaults to `false`
+                selectorsSortingMethod: 'standard', // denotes selector sorting method; can be `'natural'` or `'standard'`, `'none'`, or false (the last two since 4.1.0); defaults   o `'standard'`
+                specialComments: 'all', // denotes a number of /*! ... */ comments preserved; defaults to `all`
+                tidyAtRules: true, // controls at-rules (e.g. `@charset`, `@import`) optimizing; defaults to `true`
+                tidyBlockScopes: true, // controls block scopes (e.g. `@media`) optimizing; defaults to `true`
+                tidySelectors: true, // controls selectors optimizing; defaults to `true`,
+                transform: function () {} // defines a callback for fine-grained property optimization; defaults to no-op
+            }
+        },
         format: {
             breaks: { // controls where to insert breaks
                 afterAtRule: true, // controls if a line break comes after an at-rule; e.g. `@charset`; defaults to `false`
@@ -223,11 +266,34 @@ function postFixCss(s){
                 beforeValue: false // controls if a space comes before a value; e.g. `width: 1rem`; defaults to `false`
             },
             wrapAt: false // controls maximum line length; defaults to `false`
-        }
+        },
+        returnPromise:true
     };
-    var s = new CleanCSS(options).minify(s);
+    s = new CleanCSS(options).minify(s);
+    return s;
+}
 
-    return s.styles;
+function postFixCss(s){
+    s=s.split("\n");
+
+    if(s[s.length-1].length===0){
+        // the last item is empty
+        s=s.slice(0,s.length-1);
+    };
+
+    var arr=[],regFrom=/^\/\*\! CSS Used from: /;
+    for (var i = 0; i < s.length; i++) {
+        if( (s[i].match(regFrom)!==null) && ( i+1===s.length || ( s[i+1].match(regFrom)!==null ) )){
+            continue;
+        }else{
+            arr.push(s[i]);
+        }
+    }
+    s=arr.join('\n');
+    s = s.replace(/(['"']?)微软雅黑\1/,'"Microsoft Yahei"')
+    .replace(/(['"']?)宋体\1/,' simsun ');
+
+    return s;
 }
 
 function traversalCSSRuleList(styleSheet){
@@ -331,6 +397,9 @@ function traversalCSSRuleList(styleSheet){
 function makeRequest(url) {
     var result={};
     result.url=url;
+    chrome.runtime.sendMessage({
+        status: 'Preparing ...'
+    });
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.responseType = 'arraybuffer';
@@ -349,9 +418,6 @@ function makeRequest(url) {
                     });
                 result.status=this.status;
                 result.statusText=this.statusText;
-                chrome.runtime.sendMessage({
-                    cssloading: url
-                });
                 resolve(result);
             } else {
                 result.cssraw="";
@@ -409,18 +475,11 @@ function convUrlToAbs(baseURI, url) {
     url = url.replace(quote, '$1');
     var _baseURI = new URI(baseURI),
         _url = new URI(url);
-    if (url.match(/^\/\//)) {
-        return '"' + _baseURI.protocol() + ':' + url + '"';
-    };
-    if (url.match(/^\//)) {
-        return '"' + _baseURI.protocol() + '://' + _baseURI.hostname() + url + '"';
-    };
-    if (_url.is('relative')) {
-        return '"' + _baseURI.protocol() + '://' + _baseURI.hostname() + _baseURI.directory() + '/' + url + '"';
-    };
-    if (_url.is('absolute')) {
-        return '"' + url + '"';
-    };
+    if(_url.protocol().match(/^(https?)?$/!==null)){
+        return _url.absoluteTo(baseURI)
+    }else{
+        return url
+    }
 }
 
 // cssText won't show background-size

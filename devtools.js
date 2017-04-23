@@ -12,15 +12,18 @@ function page_getProperties() {
     return data;
 }
 
-evalGetc=function() {
+evalGetc=function(stop) {
     if(!sidebarvisible) return;
     pop.style.display='block';
-    chrome.devtools.inspectedWindow.eval('getC($0)',{
+    tips.innerHTML='...'
+    chrome.devtools.inspectedWindow.eval('getC('+(stop?'':'$0')+')',{
         useContentScriptContext: true
     });
 }
 
-chrome.devtools.panels.elements.onSelectionChanged.addListener(evalGetc);
+chrome.devtools.panels.elements.onSelectionChanged.addListener(function(){
+    evalGetc();
+});
 
 chrome.devtools.panels.elements.createSidebarPane(
     "CSS Used",
@@ -37,6 +40,7 @@ chrome.devtools.panels.elements.createSidebarPane(
             evalGetc();
         });
         sidebar.onHidden.addListener(function(){
+            evalGetc(true);
             sidebarvisible=false;
         });
     }
@@ -57,11 +61,11 @@ backgroundPageConnection.onMessage.addListener(function (message, sender, sendRe
     if(message.err!==undefined){
         tips.innerHTML='ERROR:'+message.err;
         pop.style.display='block';
-    }else if(message.cssloading!==undefined){
-        tips.innerHTML='Getting external CSS ...<br>'+message.cssloading;
+    }else if(message.status!==undefined){
+        tips.innerHTML=message.status;
         pop.style.display='block';
     }else if(message.css===undefined){
-        tips.innerHTML='The selected dom has '+message.dom+(message.dom>0?' children':' child')+'.<br>Traversing stylesheets:'+message.sheet+', rules:'+message.rule;
+        tips.innerHTML='The selected dom has '+message.dom+(message.dom>0?' children':' child')+'.<br>Traversing the '+message.rulenow+'th rule:';
         pop.style.display='block';
     }else{
         outp1.value=message.html;
