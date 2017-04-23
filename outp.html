@@ -4,17 +4,23 @@
 <link rel="stylesheet" type="text/css" href="outp.css">
 </head>
 <body>
+<div id="issuebtn">issue?</div>
 <div class="outp outp1">
     <textarea id="outp1"></textarea>
 </div>
 <div class="outp outp2">
     <textarea id="outp2"></textarea>
 </div>
-<form action="http://codepen.io/pen/define" method="POST" target="_blank">
-  <input type="hidden" name="data" value='{"title": "New Pen!", "html": "<div>Hello, World!</div>"}'>
-  <input type="submit" value="Send to CodePen">
-</form>
-<button id="newwin">Preview</button>
+<div class="operate">
+    <button id="copy">Copy to Clipboard</button>
+    <button id="newwin">Local Preview</button>
+    <form action="http://codepen.io/pen/define" method="POST" target="_blank">
+      <input type="hidden" name="data" value='{"title": "New Pen!", "html": "<div>Hello, World!</div>"}'>
+      <button>Send to CodePen</button>
+    </form>
+</div>
+
+
 <div class="pop" id="pop"><p>Calculating...</p></div>
 <script src="outp.js"></script>
 </body>

@@ -12,11 +12,19 @@ function page_getProperties() {
     return data;
 }
 
-evalGetc=function(stop) {
+evalGetc=function() {
     if(!sidebarvisible) return;
     pop.style.display='block';
     tips.innerHTML='Preparing ...'
-    chrome.devtools.inspectedWindow.eval('getC('+(stop?'':'$0')+')',{
+    chrome.devtools.inspectedWindow.eval('getC($0)',{
+        useContentScriptContext: true
+    });
+}
+
+evalGetcSTOP=function() {
+    pop.style.display='block';
+    tips.innerHTML='Please select an elements on the left'
+    chrome.devtools.inspectedWindow.eval('getC()',{
         useContentScriptContext: true
     });
 }
@@ -40,7 +48,7 @@ chrome.devtools.panels.elements.createSidebarPane(
             evalGetc();
         });
         sidebar.onHidden.addListener(function(){
-            evalGetc(true);
+            evalGetcSTOP();
             sidebarvisible=false;
         });
     }
@@ -65,7 +73,7 @@ backgroundPageConnection.onMessage.addListener(function (message, sender, sendRe
         tips.innerHTML=message.status;
         pop.style.display='block';
     }else if(message.css===undefined){
-        tips.innerHTML='The selected dom has '+message.dom+(message.dom>0?' children':' child')+'.<br>Traversing the '+message.rulenow+'th rule:';
+        tips.innerHTML='The selected dom has '+message.dom+(message.dom>0?' children':' child')+'.<br>Page rules are about '+message.rule+'.<br>Traversing the '+message.rulenow+'th rule...';
         pop.style.display='block';
     }else{
         outp1.value=message.html;

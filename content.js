@@ -7,6 +7,12 @@ var pseudocls = 'active|checked|disabled|empty|enabled|focus|hover|in-range|inva
     pseudoele = 'after|before|first-letter|first-line|selection';
 
 function getC($0) {
+    if($0&&$0.nodeName&&$0.nodeName.match(/^<pseudo:/)){
+        chrome.runtime.sendMessage({
+            status: "It's a pseudo element"
+        });
+        return;
+    }
     globalCount++;
     toList.forEach(function(ele){
         clearTimeout(ele);
@@ -15,6 +21,7 @@ function getC($0) {
 
     if(typeof $0 ==='undefined'){
         return
+    }else{
     }
 
     var domlist = [];
@@ -43,7 +50,6 @@ function getC($0) {
         });
     }).then(function(){
         return generateRulesAll();
-        // handleCssTxt();
     }).then(function(objCss){ // {fontFace : Array, keyFram : Array, normRule : Array}
         return testDomMatch(domlist,objCss,globalCount);
     }).then(function(data){
@@ -285,15 +291,11 @@ function cleanCSS(s){
 function postFixCss(s){
     s=s.split("\n");
 
-    if(s[s.length-1].length===0){
-        // the last item is empty
-        s=s.slice(0,s.length-1);
-    };
-
-    while(s[s.length-1].match(/^\/\*\! /)!==null){
+    // remove the last comments line
+    // which have no rules
+    while(s.length>0&&s[s.length-1].match(/^\/\*\! |^$/)!==null){
         s=s.slice(0,s.length-1);
     }
-
     var arr=[],regFrom=/^\/\*\! CSS Used from: /;
     for (var i = 0; i < s.length; i++) {
         if( (s[i].match(regFrom)!==null) && ( i+1===s.length || ( s[i+1].match(regFrom)!==null ) )){
@@ -487,11 +489,12 @@ function convUrlToAbs(baseURI, url) {
     baseURI = baseURI.replace(quote, '$1');
     url = url.replace(quote, '$1');
     var _baseURI = new URI(baseURI),
-        _url = new URI(url);    
-    if(_url.protocol().match(/^(https?)?$/)!==null){
-        return _url.absoluteTo(baseURI)._string
-    }else{
+        _url = new URI(url);
+
+    if(_url.is('absolute')){
         return url
+    }else{
+        return _url.absoluteTo(baseURI)._string
     }
 }
 
