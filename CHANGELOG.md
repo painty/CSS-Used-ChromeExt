@@ -1,3 +1,8 @@
+**ver 1.5.0 | 04/23/2017**
+1. Rewrite. to async way. Now CSS-Used could have a quicker UI response. Still be CAUTIOUS when selecting too many elements which may freeze the current tab.
+2. Add. Two buttons: `Copy to clipboard` & `Send to codepen`
+3. Better handling for pseudo element/class
+
 **ver 1.4.2 | 04/15/2017** 
 1. Add. calculating progress display.
 
