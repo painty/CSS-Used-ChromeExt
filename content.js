@@ -8,7 +8,6 @@ var pseudocls = 'active|checked|disabled|empty|enabled|focus|hover|in-range|inva
     pseudoele = 'after|before|first-letter|first-line|selection';
 
 function getC($0) {
-    console.log($0);
     globalCount++;
     toList.forEach(function(ele){
         clearTimeout(ele);
