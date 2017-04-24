@@ -8,6 +8,7 @@ var pseudocls = 'active|checked|disabled|empty|enabled|focus|hover|in-range|inva
     pseudoele = 'after|before|first-letter|first-line|selection';
 
 function getC($0) {
+    console.log($0);
     globalCount++;
     toList.forEach(function(ele){
         clearTimeout(ele);
@@ -45,6 +46,10 @@ function getC($0) {
             return
         }
     }
+
+    chrome.runtime.sendMessage({
+        status: "Preparing ..."
+    });
 
     // console.log('NOT return,begin');
     doc=$0.ownerDocument;
@@ -332,10 +337,11 @@ function postFixCss(s){
 function traversalCSSRuleList(styleSheet){
     var promises = [];
 
-    var objCss={};
-    objCss.normRule=[];
-    objCss.keyFram=[];
-    objCss.fontFace=[];
+    var objCss={
+        normRule:[],
+        keyFram:[],
+        fontFace:[]
+    };
 
     var CSSRuleList=styleSheet.cssRules;
 
@@ -353,64 +359,58 @@ function traversalCSSRuleList(styleSheet){
         for (var i = 0; i < CSSRuleList.length; i++) {
             (function(CSSRuleListItem){
                 promises.push(new Promise(function (res, rej){
+
+                    var _objCss={
+                        normRule:[],
+                        keyFram:[],
+                        fontFace:[]
+                    };
                     
                     if (CSSRuleListItem.type === 7) { // CSSKeyframesRule
-                        res({
-                            normRule:[],
-                            keyFram:[CSSRuleListItem],
-                            fontFace:[],
-                        });
+                        _objCss.keyFram.push(CSSRuleListItem);
+                        res(_objCss);
                     }else if (CSSRuleListItem.type === 5) { // CSSFontFaceRule
-                        res({
-                            normRule:[],
-                            keyFram:[],
-                            fontFace:[CSSRuleListItem],
-                        });
+                        _objCss.fontFace.push(CSSRuleListItem);
+                        res(_objCss);
                     }else if (CSSRuleListItem.type === 4) { // CSSMediaRule
                         traversalCSSRuleList(CSSRuleListItem).then(function(obj){
-                            var _obj={
-                                normRule:[],
-                                keyFram:[],
-                                fontFace:[],
-                            };
-                            _obj.normRule.push('\n@media ' + CSSRuleListItem.conditionText + '{\n');
-                            helper.mergeobjCss(_obj, obj );
-                            _obj.normRule.push('}\n');
-                            res(_obj);
+                            _objCss.normRule.push('\n@media ' + CSSRuleListItem.conditionText + '{\n');
+                            helper.mergeobjCss(_objCss, obj );
+                            _objCss.normRule.push('}\n');
+                            res(_objCss);
                         });
                     }else if (CSSRuleListItem.type === 3) { // CSSImportRule
                         let href=CSSRuleListItem.href;
                         if(href){
-                            convLinkToText([href]).then(function(result){
-                                if( Object.prototype.toString.call( result ) === '[object Array]' ){
-                                    let item=result[0];
-                                    item.CSSStyleSheet=convTextToRules(item.cssraw);
-                                    externalCssCache[item.url] = item;
-                                    traversalCSSRuleList(item.CSSStyleSheet).then(function(obj){
-                                        var _obj={
-                                            normRule:[],
-                                            keyFram:[],
-                                            fontFace:[],
-                                        };
-                                        _obj.normRule.push('/*! ' + CSSRuleListItem.cssText + ' */');
-                                        helper.mergeobjCss(_obj, obj );
-                                        res(_obj);
-                                    })
-                                }
-                            })
-                        };
+                            if(externalCssCache[href] !== undefined ){
+                                let item=externalCssCache[href];
+                                traversalCSSRuleList(item.CSSStyleSheet).then(function(obj){
+                                    _objCss.normRule.push('/*! ' + CSSRuleListItem.cssText + ' */');
+                                    helper.mergeobjCss(_objCss, obj );
+                                    res(_objCss);
+                                })
+                            }else{
+                                convLinkToText([href]).then(function(result){
+                                    if( Object.prototype.toString.call( result ) === '[object Array]' ){
+                                        let item=result[0];
+                                        item.CSSStyleSheet=convTextToRules(item.cssraw);
+                                        externalCssCache[item.url] = item;
+                                        traversalCSSRuleList(item.CSSStyleSheet).then(function(obj){
+                                            _objCss.normRule.push('/*! ' + CSSRuleListItem.cssText + ' */');
+                                            helper.mergeobjCss(_objCss, obj );
+                                            res(_objCss);
+                                        })
+                                    }
+                                })
+                            }
+                        }else{
+                            res(_objCss);
+                        }
                     }else if (!CSSRuleListItem.selectorText) {
-                        res({
-                            normRule:[],
-                            keyFram:[],
-                            fontFace:[],
-                        });
+                        res(_objCss);
                     }else{ // the normal "CSSStyleRule"
-                        res({
-                            normRule:[CSSRuleListItem],
-                            keyFram:[],
-                            fontFace:[],
-                        })
+                        _objCss.normRule.push(CSSRuleListItem)
+                        res(_objCss);
                     };
                 }));
             })(CSSRuleList[i])
@@ -431,7 +431,7 @@ function makeRequest(url) {
     var result={};
     result.url=url;
     chrome.runtime.sendMessage({
-        status: 'Preparing ...'
+        status: 'Getting : '+url
     });
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
@@ -452,6 +452,9 @@ function makeRequest(url) {
                 result.status=this.status;
                 result.statusText=this.statusText;
                 resolve(result);
+                chrome.runtime.sendMessage({
+                    status: 'Parsing : '+url
+                });
             } else {
                 result.cssraw="";
                 result.status=this.status;

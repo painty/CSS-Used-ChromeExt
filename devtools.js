@@ -1,9 +1,12 @@
 var outp1, outp2, pop,tips, sidebarvisible=false;
 
+var newpage=true;
+
 function evalGetc() {
+    newpage=false;
     if(!sidebarvisible) return;
     pop.style.display='block';
-    tips.innerHTML='Preparing ...';
+    tips.innerHTML='Select an elements on the left';
 
     var arrFrameURL=[];
     chrome.devtools.inspectedWindow.getResources(function(resources){
@@ -23,7 +26,7 @@ function evalGetc() {
 
 function evalGetcSTOP() {
     pop.style.display='block';
-    tips.innerHTML='Please select an elements on the left';
+    tips.innerHTML='Select an elements on the left';
 
     var arrFrameURL=[];
     chrome.devtools.inspectedWindow.getResources(function(resources){
@@ -66,6 +69,9 @@ chrome.devtools.panels.elements.createSidebarPane(
     }
 );
 
+chrome.devtools.network.onNavigated.addListener(function(){
+    newpage=true;
+})
 
 // Create a connection to the background page
 var backgroundPageConnection = chrome.runtime.connect({
@@ -82,8 +88,12 @@ backgroundPageConnection.onMessage.addListener(function (message, sender, sendRe
         tips.innerHTML='ERROR:'+message.err;
         pop.style.display='block';
     }else if(message.status!==undefined){
-        tips.innerHTML=message.status;
-        pop.style.display='block';
+        if(message.status==='$load'){
+            
+        }else{
+            tips.innerHTML=message.status;
+            pop.style.display='block';
+        }
     }else if(message.css===undefined){
         tips.innerHTML='The selected dom has '+message.dom+(message.dom>0?' children':' child')+'.<br>Page rules are about '+message.rule+'.<br>Traversing the '+message.rulenow+'th rule...';
         pop.style.display='block';
