@@ -1,3 +1,6 @@
+**ver 2.0.0 | 04/24/2017**
+1. A Break Though in speed improvement.
+
 **ver 1.5.0 | 04/23/2017**
 1. Rewrite. to async way. Now CSS-Used could have a quicker UI response. Still be CAUTIOUS when selecting too many elements which may freeze the current tab.
 2. Add. Two buttons: `Copy to clipboard` & `Send to codepen`
