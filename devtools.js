@@ -1,31 +1,43 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+var outp1, outp2, pop,tips, sidebarvisible=false;
 
-var outp1, outp2, pop,tips, evalGetc, sidebarvisible=false;
-// The function below is executed in the context of the inspected page.
-function page_getProperties() {
-    var data={};
-    data.__proto__=null;
-    data.name='jj';
-    data.name2='jj2';
-    return data;
-}
-
-evalGetc=function() {
+function evalGetc() {
     if(!sidebarvisible) return;
     pop.style.display='block';
-    tips.innerHTML='Preparing ...'
-    chrome.devtools.inspectedWindow.eval('getC($0)',{
-        useContentScriptContext: true
+    tips.innerHTML='Preparing ...';
+
+    var arrFrameURL=[];
+    chrome.devtools.inspectedWindow.getResources(function(resources){
+        for (var i = 0; i < resources.length; i++) {
+            if(resources[i].type==='document' && resources[i].url.match(/^https?:\/\//)!==null){
+                arrFrameURL.push(resources[i].url);
+            }
+        }
+        arrFrameURL.forEach(function(ele){
+            chrome.devtools.inspectedWindow.eval('getC($0)',{
+                frameURL:ele,
+                useContentScriptContext: true
+            });
+        })
     });
 }
 
-evalGetcSTOP=function() {
+function evalGetcSTOP() {
     pop.style.display='block';
-    tips.innerHTML='Please select an elements on the left'
-    chrome.devtools.inspectedWindow.eval('getC()',{
-        useContentScriptContext: true
+    tips.innerHTML='Please select an elements on the left';
+
+    var arrFrameURL=[];
+    chrome.devtools.inspectedWindow.getResources(function(resources){
+        for (var i = 0; i < resources.length; i++) {
+            if(resources[i].type==='document' && resources[i].url.match(/^https?:\/\//)!==null){
+                arrFrameURL.push(resources[i].url);
+            }
+        }
+        arrFrameURL.forEach(function(ele){
+            chrome.devtools.inspectedWindow.eval('getC()',{
+                frameURL:ele,
+                useContentScriptContext: true
+            });
+        })
     });
 }
 

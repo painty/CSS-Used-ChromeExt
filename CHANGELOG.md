@@ -1,3 +1,6 @@
+**ver 2.1.0 | 04/24/2017**
+1. Now works with iframes
+
 **ver 2.0.0 | 04/24/2017**
 1. A Break Though in speed improvement.
 

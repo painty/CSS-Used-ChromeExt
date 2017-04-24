@@ -1,42 +1,60 @@
 var globalCount = 0;
 var externalCssCache = {};
 var toList=[]; //store testDomMatch timers
+var doc=document;
 
 // may match accoding to interaction
 var pseudocls = 'active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
     pseudoele = 'after|before|first-letter|first-line|selection';
 
 function getC($0) {
-    if($0&&$0.nodeName&&$0.nodeName.match(/^<pseudo:/)){
-        chrome.runtime.sendMessage({
-            status: "It's a pseudo element"
-        });
-        return;
-    }
     globalCount++;
     toList.forEach(function(ele){
         clearTimeout(ele);
     });
     toList=[];
 
-    if(typeof $0 ==='undefined'){
+    if($0 ===null || typeof $0 ==='undefined' || typeof $0.nodeName ==='undefined'){
         return
     }else{
+        if($0.nodeName.match(/^<pseudo:/)){
+            chrome.runtime.sendMessage({
+                status: "It's a pseudo element"
+            });
+            return
+        }else if($0.nodeName==='html' || $0.nodeName.match(/^#/)){
+            chrome.runtime.sendMessage({
+                status: "Not for this element"
+            });
+            return
+        }
     }
 
-    var domlist = [];
-    domlist.push($0);
-    Array.prototype.forEach.call($0.querySelectorAll('*'), function(e) {
-        domlist.push(e);
-    });
+    var isInSameOrigin=true;
+    try{
+        $0.ownerDocument.defaultView.parent.document
+    }catch(e){
+        isInSameOrigin=false;
+        // console.log(e);
+    }
+
+    if(isInSameOrigin){
+        // if same isInSameOrigin
+        // $0 can be accessed from its parent context
+        if($0.ownerDocument.defaultView.parent.document!==document){
+            return
+        }
+    }
+
+    // console.log('NOT return,begin');
+    doc=$0.ownerDocument;
 
     var links=[];
-    Array.prototype.forEach.call(document.querySelectorAll('link[rel="stylesheet"][href]'), function(ele) {
+    Array.prototype.forEach.call($0.ownerDocument.querySelectorAll('link[rel~="stylesheet"][href]'), function(ele) {
         if(ele.href && (externalCssCache[ele.href] === undefined) ){
             links.push(ele.href);
         }
     });
-
     convLinkToText(links).then(function(result) {
         if( Object.prototype.toString.call( result ) === '[object Array]' ){
             result.forEach(function(ele,idx){
@@ -51,24 +69,30 @@ function getC($0) {
     }).then(function(){
         return generateRulesAll();
     }).then(function(objCss){ // {fontFace : Array, keyFram : Array, normRule : Array}
-        return testDomMatch(domlist,objCss,globalCount);
+        return testDomMatch($0,objCss,globalCount);
     }).then(function(data){
         return cleanCSS(data)
     }).then(function(data){
         chrome.runtime.sendMessage({
             css: postFixCss(data.styles),
-            html: $0.outerHTML.replace(/<script>[\s\S]*?<\/script>/g,'')
+            html: $0.outerHTML.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi,'').replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi,'').replace(/<link[\s\S]*?>/gi,'')
         });
     });
 }
 
-function testDomMatch(domlist,objCss,localCount){
+function testDomMatch($0,objCss,localCount){
 
     var promises = [];
     var x,y;
     var matched=[];
     var keyFramUsed = [];
     var fontFaceUsed = [];
+
+    var domlist = [];
+    domlist.push($0);
+    Array.prototype.forEach.call($0.querySelectorAll('*'), function(e) {
+        domlist.push(e);
+    });
 
     return new Promise(function (resolve, reject) {
         // loop every dom
@@ -110,9 +134,9 @@ function testDomMatch(domlist,objCss,localCount){
                                     let replacedSel=sel.replace(new RegExp('( |^)(:(' + pseudocls + ')|::?(' + pseudoele + '))+( |$)', 'g'), ' * ');
                                     replacedSel=replacedSel.replace(new RegExp('\\((:(' + pseudocls + ')|::?(' + pseudoele + '))+\\)', 'g'), '(*)');
                                     replacedSel=replacedSel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'g'), '');
-                                    if(domlist[0].matches(sel)||domlist[0].querySelector(sel)!==null){
+                                    if($0.matches(sel)||$0.querySelectorAll(sel).length!==0){
                                         selMatched.push(sel);
-                                    }else if(domlist[0].matches(replacedSel)||domlist[0].querySelector(replacedSel)!==null){
+                                    }else if($0.matches(replacedSel)||$0.querySelectorAll(replacedSel).length!==0){
                                         selMatched.push(sel);
                                     }
                                 }catch(e){
@@ -182,19 +206,19 @@ function generateRulesAll(){
 
     return new Promise(function (resolve, reject) {
         // loop every styleSheets
-        for (x = 0; x < document.styleSheets.length; x++) {
+        for (x = 0; x < doc.styleSheets.length; x++) {
             promises.push(new Promise(function (res, rej){
-                // baseURI=document.styleSheets[x].ownerNode.href || document.styleSheets[x].ownerNode.baseURI;
-                var cssHref=document.styleSheets[x].ownerNode.href;
+                // baseURI=doc.styleSheets[x].ownerNode.href || doc.styleSheets[x].ownerNode.baseURI;
+                var cssHref=doc.styleSheets[x].ownerNode.href;
                 var cssLink=externalCssCache[cssHref]&&externalCssCache[cssHref].CSSStyleSheet;
                 if(cssLink){
                     styleSheet=cssLink;
                 }else{
-                    styleSheet=document.styleSheets[x];
+                    styleSheet=doc.styleSheets[x];
                     // convert style tag css url to abs
                     styleSheet.ownerNode.innerHTML=styleSheet.ownerNode.innerHTML
                         .replace(/url\((.*?)\)/g, function(a, p1) {
-                            return 'url(' + convUrlToAbs(document.location.href, p1) + ')';
+                            return 'url(' + convUrlToAbs(doc.location.href, p1) + ')';
                         });
                 }
                 traversalCSSRuleList(styleSheet).then(function(obj){
@@ -261,13 +285,13 @@ function cleanCSS(s){
                 afterBlockBegins: true, // controls if a line break comes after a block begins; e.g. `@media`; defaults to `false`
                 afterBlockEnds: true, // controls if a line break comes after a block ends, defaults to `false`
                 afterComment: true, // controls if a line break comes after a comment; defaults to `false`
-                afterProperty: true, // controls if a line break comes after a property; defaults to `false`
-                afterRuleBegins: true, // controls if a line break comes after a rule begins; defaults to `false`
+                afterProperty: false, // controls if a line break comes after a property; defaults to `false`
+                afterRuleBegins: false, // controls if a line break comes after a rule begins; defaults to `false`
                 afterRuleEnds: true, // controls if a line break comes after a rule ends; defaults to `false`
                 beforeBlockEnds: true, // controls if a line break comes before a block ends; defaults to `false`
                 betweenSelectors: false // controls if a line break comes between selectors; defaults to `false`
             },
-            indentBy: 4, // controls number of characters to indent with; defaults to `0`
+            indentBy: 0, // controls number of characters to indent with; defaults to `0`
             indentWith: 'space', // controls a character to indent with, can be `'space'` or `'tab'`; defaults to `'space'`
             spaces: { // controls where to insert spaces
                 aroundSelectorRelation: false, // controls if spaces come around selector relations; e.g. `div > a`; defaults to `false`
@@ -464,11 +488,11 @@ function convLinkToText(links) {
 }
 
 function convTextToRules(styleContent,href) {
-    var doc = document, //.implementation.createHTMLDocument(""),
-        styleElement = document.createElement("style"),
+    //document.implementation.createHTMLDocument(""),
+    var styleElement = doc.createElement("style"),
         resultCssRules;
     styleElement.innerText = styleContent;
-    // the style will only be parsed once it is added to a document
+    // the style will only be parsed once it is added to a Document
     doc.body.appendChild(styleElement);
     resultCssRules = styleElement.sheet;
     doc.body.removeChild(styleElement);
