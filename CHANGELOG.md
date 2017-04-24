@@ -1,3 +1,6 @@
+**ver 2.1.1 | 04/25/2017**
+1. Better external CSS Cache
+
 **ver 2.1.0 | 04/24/2017**
 1. Now works with iframes
 
