@@ -73,68 +73,62 @@ function testDomMatch(domlist,objCss,localCount){
     return new Promise(function (resolve, reject) {
         // loop every dom
         objCss.normRule.forEach(function(rule,idx){
-            var selMatched=[];
-            var arrSel;
             promises.push(new Promise(function (res, rej){
                 var timer=setTimeout(function(){
-                    for (var i = 0; i < domlist.length; i++) {
-                        let element=domlist[i],index=i;
-                        if(localCount!==globalCount){
-                            // resolve(matched);
-                            break;
-                        }
-                        if( (idx*domlist.length+index)%(1000)===0){
-                            chrome.runtime.sendMessage({
-                                dom:domlist.length-1,
-                                domnow:index,
-                                rule:objCss.normRule.length,
-                                rulenow:idx
-                            });
-                        }
-                        if(typeof rule === 'string'){
-                            res(rule);
-                            break;
-                        }else{
-                            if(typeof arrSel !== 'object'){
-                                arrSel=rule.selectorText.split(', ').filter(function(v, i, self) {
-                                    return self.indexOf(v) === i;
-                                });
-                            };
-                            arrSel.forEach(function(sel,i){
-                                if(selMatched.indexOf(sel)!==-1){
-                                    return;
-                                }
-                                // these pseudo class/elements can apply to any ele
-                                // but wont apply now 
-                                // eg. :active{xxx}
-                                // only works when clicked on and actived
-                                if (sel.match(new RegExp('^(:(' + pseudocls + ')|::?(' + pseudoele + '))+$', ''))) {
-                                    selMatched.push(sel);
-                                } else {
-                                    try{
-                                        let replacedSel=sel.replace(new RegExp('( |^)(:(' + pseudocls + ')|::?(' + pseudoele + '))+( |$)', 'g'), ' * ');
-                                        replacedSel=replacedSel.replace(new RegExp('\\((:(' + pseudocls + ')|::?(' + pseudoele + '))+\\)', 'g'), '(*)');
-                                        replacedSel=replacedSel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'g'), '');
-                                        if(element.matches(sel)){
-                                            selMatched.push(sel);
-                                        }else if(element.matches(replacedSel)){
-                                            selMatched.push(sel);
-                                        }
-                                    }catch(e){
-                                        console.log(sel,e);
-                                    }
-                                }
-                            });
-                            if(selMatched.length===arrSel.length|| (selMatched.length!==0 && index===domlist.length-1)){
-                                res(rule.cssText.replace(rule.selectorText,selMatched.join(',')));
-                                if (rule.style.animationName) {
-                                    keyFramUsed=keyFramUsed.concat(rule.style.animationName.split(', '));
-                                };
-                                if (rule.style.fontFamily) {
-                                    fontFaceUsed=fontFaceUsed.concat(rule.style.fontFamily.split(', '));
-                                };
-                                break;
+                    if(localCount!==globalCount){
+                        // resolve(matched);
+                        return;
+                    }
+                    if(idx%100===0){
+                        chrome.runtime.sendMessage({
+                            dom:domlist.length-1,
+                            rule:objCss.normRule.length,
+                            rulenow:idx
+                        });
+                    }
+                    
+                    if(typeof rule === 'string'){
+                        res(rule);
+                        return;
+                    }else{
+                        var selMatched=[];
+                        var arrSel=rule.selectorText.split(', ').filter(function(v, i, self) {
+                            return self.indexOf(v) === i;
+                        });
+                        arrSel.forEach(function(sel,i){
+                            if(selMatched.indexOf(sel)!==-1){
+                                return;
                             }
+                            // these pseudo class/elements can apply to any ele
+                            // but wont apply now 
+                            // eg. :active{xxx}
+                            // only works when clicked on and actived
+                            if (sel.match(new RegExp('^(:(' + pseudocls + ')|::?(' + pseudoele + '))+$', ''))) {
+                                selMatched.push(sel);
+                            } else {
+                                try{
+                                    let replacedSel=sel.replace(new RegExp('( |^)(:(' + pseudocls + ')|::?(' + pseudoele + '))+( |$)', 'g'), ' * ');
+                                    replacedSel=replacedSel.replace(new RegExp('\\((:(' + pseudocls + ')|::?(' + pseudoele + '))+\\)', 'g'), '(*)');
+                                    replacedSel=replacedSel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'g'), '');
+                                    if(domlist[0].matches(sel)||domlist[0].querySelector(sel)!==null){
+                                        selMatched.push(sel);
+                                    }else if(domlist[0].matches(replacedSel)||domlist[0].querySelector(replacedSel)!==null){
+                                        selMatched.push(sel);
+                                    }
+                                }catch(e){
+                                    console.log(sel,e);
+                                }
+                            }
+                        });
+                        if(selMatched.length!==0){
+                            res(rule.cssText.replace(rule.selectorText,selMatched.join(',')));
+                            if (rule.style.animationName) {
+                                keyFramUsed=keyFramUsed.concat(rule.style.animationName.split(', '));
+                            };
+                            if (rule.style.fontFamily) {
+                                fontFaceUsed=fontFaceUsed.concat(rule.style.fontFamily.split(', '));
+                            };
+                            return;
                         }
                     }
                     res("");
