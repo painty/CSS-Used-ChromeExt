@@ -6,7 +6,7 @@ var toList=[]; //store testDomMatch timers
 var doc=document;
 
 // may match accoding to interaction
-var pseudocls = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
+var pseudocls = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
     pseudoele = '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection))|-ms-clear|-ms-reveal|-ms-expand|-moz-focusring|after|before|first-letter|first-line';
 
 function getC($0) {
@@ -79,7 +79,7 @@ function getC($0) {
     })
     .then(generateRulesAll)
     .then(function(objCss){ // {fontFace : Array, keyFram : Array, normRule : Array}
-        console.log(objCss,externalCssCache);
+        debugMode&&console.log(objCss,externalCssCache);
         return testDomMatch($0,objCss,globalCount);
     }).then(function(data){
         return cleanCSS(data)
@@ -127,7 +127,7 @@ function testDomMatch($0,objCss,localCount){
                         return;
                     }else{
                         var selMatched=[];
-                        var arrSel=rule.selector.split(/ *, */).filter(function(v, i, self) {
+                        var arrSel=rule.selectors.filter(function(v, i, self) {
                             return self.indexOf(v) === i;
                         });
                         arrSel.forEach(function(sel,i){
@@ -150,22 +150,29 @@ function testDomMatch($0,objCss,localCount){
                                         selMatched.push(sel);
                                     }
                                 }catch(e){
-                                    count.push([sel,e]);
+                                    count.push(sel);
+                                    count.push(e);
                                 }
                                 try{
                                     if($0.matches(replacedSel)||$0.querySelectorAll(replacedSel).length!==0){
                                         selMatched.push(sel);
                                     }
                                 }catch(e){
-                                    count.push([replacedSel,e]);
+                                    count.push(replacedSel);
+                                    count.push(e);
                                 }
-                                if(count.length===2&&debugMode){
+                                if(count.length===4&&debugMode){
+                                    if(count[2]===count[0]){
+                                        count=count.slice(0,2);
+                                    }
                                     console.log(count);
                                 }
                             }
                         });
                         if(selMatched.length!==0){
-                            var cssText=selMatched.join(',');
+                            var cssText=selMatched.filter(function(v, i, self) {
+                                return self.indexOf(v) === i;
+                            }).join(',');
                             cssText+=('{'+helper.normRuleNodeToText(rule)+'}');
                             res(cssText);
                             rule.nodes.forEach(function(ele,idx){
@@ -341,7 +348,6 @@ function traversalCSSRuleList(cssNodeArr){
                             }else{
                                 convLinkToText([href]).then(function(result){
                                     let item=result[0];
-                                    
                                     convTextToRules(item.cssraw).then(function(nodeArr){
                                         item.css=nodeArr;
                                         externalCssCache[item.url] = item.css;
@@ -391,7 +397,8 @@ var helper={
         var s="";
         node.nodes.forEach(function(ele,idx){
             if(ele.prop&&ele.value){
-                s+=(ele.prop+':'+ele.value+';');
+                var before=ele.before.replace(/[\s]*/,'');
+                s+=(before+ele.prop+':'+ele.value+(ele.important?'!important;':';'));
             }
         });
         return s
