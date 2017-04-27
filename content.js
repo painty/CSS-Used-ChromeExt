@@ -1,5 +1,5 @@
 // chrome.runtime.sendMessage=function(){};
-var debugMode=true;
+var debugMode=false;
 var globalCount = 0;
 var externalCssCache = {};
 var toList=[]; //store testDomMatch timers

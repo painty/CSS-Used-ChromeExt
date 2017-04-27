@@ -1,3 +1,6 @@
+**ver 2.2.0 | 04/25/2017**
+1.changed CSS parsing from Chrome to postcss
+
 **ver 2.1.1 | 04/25/2017**
 1. Better external CSS Cache
 
