@@ -6,7 +6,7 @@ function evalGetc() {
     newpage=false;
     if(!sidebarvisible) return;
     pop.style.display='block';
-    tips.innerHTML='Select an elements on the left';
+    tips.innerHTML='Select an elements on the left<br><small>a page reload may be needed for the first time use</small>';
 
     var arrFrameURL=[];
     chrome.devtools.inspectedWindow.getResources(function(resources){
@@ -26,7 +26,7 @@ function evalGetc() {
 
 function evalGetcSTOP() {
     pop.style.display='block';
-    tips.innerHTML='Select an elements on the left';
+    tips.innerHTML='Select an elements on the left<br><small>a page reload may be needed for the first time use</small>';
 
     var arrFrameURL=[];
     chrome.devtools.inspectedWindow.getResources(function(resources){
