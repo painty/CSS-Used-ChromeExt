@@ -1,11 +1,13 @@
+// chrome.runtime.sendMessage=function(){};
+var debugMode=true;
 var globalCount = 0;
 var externalCssCache = {};
 var toList=[]; //store testDomMatch timers
 var doc=document;
 
 // may match accoding to interaction
-var pseudocls = 'active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
-    pseudoele = 'after|before|first-letter|first-line|selection';
+var pseudocls = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
+    pseudoele = '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection))|-ms-clear|-ms-reveal|-ms-expand|-moz-focusring|after|before|first-letter|first-line';
 
 function getC($0) {
     globalCount++;
@@ -60,25 +62,30 @@ function getC($0) {
         }
     });
     convLinkToText(links).then(function(result) {
-        if( Object.prototype.toString.call( result ) === '[object Array]' ){
-            result.forEach(function(ele,idx){
-                ele.CSSStyleSheet=convTextToRules(ele.cssraw,links[idx]);
-                externalCssCache[ele.url] = ele;
-            });
+        var promises=[];
+        for (var i = 0; i < result.length; i++) {
+            let ele=result[i], idx=i;
+            promises.push(convTextToRules(ele.cssraw,links[idx]));
         }
-    }, function(err) {
+        return Promise.all(promises);
+    }).catch(function(err) {
         chrome.runtime.sendMessage({
             err: JSON.stringify(err)
         });
-    }).then(function(){
-        return generateRulesAll();
-    }).then(function(objCss){ // {fontFace : Array, keyFram : Array, normRule : Array}
+    }).then(function(result){
+        result.forEach(function(ele){
+            externalCssCache[ele.href] = ele;
+        });
+    })
+    .then(generateRulesAll)
+    .then(function(objCss){ // {fontFace : Array, keyFram : Array, normRule : Array}
+        console.log(objCss,externalCssCache);
         return testDomMatch($0,objCss,globalCount);
     }).then(function(data){
         return cleanCSS(data)
     }).then(function(data){
         chrome.runtime.sendMessage({
-            css: postFixCss(data.styles),
+            css: postFixCss(data),
             html: $0.outerHTML.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi,'').replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi,'').replace(/<link[\s\S]*?>/gi,'')
         });
     });
@@ -120,7 +127,7 @@ function testDomMatch($0,objCss,localCount){
                         return;
                     }else{
                         var selMatched=[];
-                        var arrSel=rule.selectorText.split(', ').filter(function(v, i, self) {
+                        var arrSel=rule.selector.split(/ *, */).filter(function(v, i, self) {
                             return self.indexOf(v) === i;
                         });
                         arrSel.forEach(function(sel,i){
@@ -134,28 +141,45 @@ function testDomMatch($0,objCss,localCount){
                             if (sel.match(new RegExp('^(:(' + pseudocls + ')|::?(' + pseudoele + '))+$', ''))) {
                                 selMatched.push(sel);
                             } else {
+                                let count=[];
+                                let replacedSel=sel.replace(new RegExp('( |^)(:(' + pseudocls + ')|::?(' + pseudoele + '))+( |$)', 'ig'), ' * ');
+                                replacedSel=replacedSel.replace(new RegExp('\\((:(' + pseudocls + ')|::?(' + pseudoele + '))+\\)', 'ig'), '(*)');
+                                replacedSel=replacedSel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'ig'), '');
                                 try{
-                                    let replacedSel=sel.replace(new RegExp('( |^)(:(' + pseudocls + ')|::?(' + pseudoele + '))+( |$)', 'g'), ' * ');
-                                    replacedSel=replacedSel.replace(new RegExp('\\((:(' + pseudocls + ')|::?(' + pseudoele + '))+\\)', 'g'), '(*)');
-                                    replacedSel=replacedSel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'g'), '');
                                     if($0.matches(sel)||$0.querySelectorAll(sel).length!==0){
-                                        selMatched.push(sel);
-                                    }else if($0.matches(replacedSel)||$0.querySelectorAll(replacedSel).length!==0){
                                         selMatched.push(sel);
                                     }
                                 }catch(e){
-                                    console.log(sel,e);
+                                    count.push([sel,e]);
+                                }
+                                try{
+                                    if($0.matches(replacedSel)||$0.querySelectorAll(replacedSel).length!==0){
+                                        selMatched.push(sel);
+                                    }
+                                }catch(e){
+                                    count.push([replacedSel,e]);
+                                }
+                                if(count.length===2&&debugMode){
+                                    console.log(count);
                                 }
                             }
                         });
                         if(selMatched.length!==0){
-                            res(rule.cssText.replace(rule.selectorText,selMatched.join(',')));
-                            if (rule.style.animationName) {
-                                keyFramUsed=keyFramUsed.concat(rule.style.animationName.split(', '));
-                            };
-                            if (rule.style.fontFamily) {
-                                fontFaceUsed=fontFaceUsed.concat(rule.style.fontFamily.split(', '));
-                            };
+                            var cssText=selMatched.join(',');
+                            cssText+=('{'+helper.normRuleNodeToText(rule)+'}');
+                            res(cssText);
+                            rule.nodes.forEach(function(ele,idx){
+                                if (ele.prop&&ele.prop.match(/^(-(webkit|moz|ms|o)-)?animation(-name)?$/i)!==null) {
+                                    keyFramUsed=keyFramUsed.concat(ele.value.split(/ *, */).map(function(ele) {
+                                        return ele.split(' ')[0];
+                                    }));
+                                };
+                            });
+                            fontfamilyOfRule=helper.textToCss(cssText);
+                            if(fontfamilyOfRule.cssRules[0]&&fontfamilyOfRule.cssRules[0].style.fontFamily){
+                                fontFaceUsed=fontFaceUsed.concat(fontfamilyOfRule.cssRules[0].style.fontFamily.split(', '));
+                            }
+                            
                             return;
                         }
                     }
@@ -178,18 +202,31 @@ function testDomMatch($0,objCss,localCount){
                     matched.push(ele);
                 }
             });
+            var frameCommentMarkUsed=false;
             keyFramUsed.forEach(function(ele){
                 objCss.keyFram.forEach(function(e){
-                    if(ele===e.name){
-                        matched.push(e.cssText);
+                    if(ele===e.params){
+                        if(!frameCommentMarkUsed){
+                            matched.push('/*! CSS Used keyframes */');
+                            frameCommentMarkUsed=true;
+                        }
+                        matched.push(helper.keyFramNodeToText(e));
                     }
                 })
             });
+            var fontCommentMarkUsed=false;
             fontFaceUsed.forEach(function(ele){
                 objCss.fontFace.forEach(function(e){
-                    if(ele===e.style.fontFamily){
-                        matched.push(e.cssText);
-                    }
+                    e.nodes.forEach(function(n){
+                        if(n.prop==='font-family' && ele.replace(/^(['"])?(.*)\1$/,'$2')===n.value.replace(/^(['"])?(.*)\1$/,'$2')){
+                            if(!fontCommentMarkUsed){
+                                matched.push('/*! CSS Used fontfaces */');
+                                fontCommentMarkUsed=true;
+                            }
+                            matched.push(helper.fontFaceNodeToText(e));
+                        }
+                    })
+                    
                 })
             });
             resolve(matched);
@@ -200,11 +237,13 @@ function testDomMatch($0,objCss,localCount){
 }
 
 function generateRulesAll(){
-    var x,styleSheet,objCss={};
+    var x;
 
-    objCss.normRule=[];
-    objCss.fontFace=[];
-    objCss.keyFram=[];
+    var objCss={
+        normRule:[],
+        fontFace:[],
+        keyFram:[]
+    }
 
     var promises = [];
 
@@ -212,22 +251,25 @@ function generateRulesAll(){
         // loop every styleSheets
         for (x = 0; x < doc.styleSheets.length; x++) {
             promises.push(new Promise(function (res, rej){
-                // baseURI=doc.styleSheets[x].ownerNode.href || doc.styleSheets[x].ownerNode.baseURI;
                 var cssHref=doc.styleSheets[x].ownerNode.href;
-                var cssLink=externalCssCache[cssHref]&&externalCssCache[cssHref].CSSStyleSheet;
-                if(cssLink){
-                    styleSheet=cssLink;
+                var cssNodeArr;
+                if(cssHref){
+                    cssNodeArr=externalCssCache[cssHref];
+                    traversalCSSRuleList(cssNodeArr).then(function(obj){
+                        res(obj);
+                    })
                 }else{
-                    styleSheet=doc.styleSheets[x];
-                    // convert style tag css url to abs
-                    styleSheet.ownerNode.innerHTML=styleSheet.ownerNode.innerHTML
-                        .replace(/url\((.*?)\)/g, function(a, p1) {
-                            return 'url(' + convUrlToAbs(doc.location.href, p1) + ')';
-                        });
+                    // style tag
+                    // convert urls in style tag to abs
+                    let html=doc.styleSheets[x].ownerNode.innerHTML.replace(/url\((.*?)\)/g, function(a, p1) {
+                        return 'url(' + convUrlToAbs(doc.location.href, p1) + ')';
+                    });
+                    convTextToRules(html,doc.location.href).then(function(cssNodeArr){
+                        traversalCSSRuleList(cssNodeArr).then(function(obj){
+                            res(obj);
+                        })
+                    })
                 }
-                traversalCSSRuleList(styleSheet).then(function(obj){
-                    res(obj);
-                })
             }));
         };
 
@@ -235,6 +277,100 @@ function generateRulesAll(){
             result.forEach(function(ele){
                 helper.mergeobjCss(objCss, ele );
             });
+            resolve(objCss);
+        }).catch(function(err) {
+            reject(err);
+        });
+    });
+}
+
+function traversalCSSRuleList(cssNodeArr){
+    var promises = [];
+
+    var objCss={
+        normRule:[],
+        keyFram:[],
+        fontFace:[]
+    };
+
+    return new Promise(function (resolve, reject) {
+        if(cssNodeArr===undefined||cssNodeArr.length===0){
+            resolve(objCss);
+        }else if(cssNodeArr.length>0){ // annotion where the CSS rule from
+            if(cssNodeArr.href===doc.location.href){
+                objCss.normRule.push('/*! CSS Used from: Embedded */');
+            }else if(cssNodeArr.href){
+                objCss.normRule.push('/*! CSS Used from: '+cssNodeArr.href+' */');
+            }
+        }
+
+        for (var i = 0; i < cssNodeArr.length; i++) {
+            (function(CSSRuleListItem){
+                promises.push(new Promise(function (res, rej){
+
+                    var _objCss={
+                        normRule:[],
+                        keyFram:[],
+                        fontFace:[]
+                    };
+                    if (CSSRuleListItem.type === 'atrule' && CSSRuleListItem.name.match(/^(-(webkit|moz|ms|o)-)?keyframes$/)) { // CSSKeyframesRule
+                        _objCss.keyFram.push(CSSRuleListItem);
+                        res(_objCss);
+                    }else if (CSSRuleListItem.type === 'atrule' && CSSRuleListItem.name==='font-face') { // CSSFontFaceRule
+                        _objCss.fontFace.push(CSSRuleListItem);
+                        res(_objCss);
+                    }else if (CSSRuleListItem.type === 'atrule' && CSSRuleListItem.name==="media") { // CSSMediaRule
+                        traversalCSSRuleList(CSSRuleListItem.nodes).then(function(obj){
+                            _objCss.normRule.push('\n@media ' + CSSRuleListItem.params + '{');
+                            helper.mergeobjCss(_objCss, obj );
+                            _objCss.normRule.push('}');
+                            res(_objCss);
+                        });
+                    }else if (CSSRuleListItem.type === "atrule" && CSSRuleListItem.name==="import") { // CSSImportRule
+                        let href=CSSRuleListItem.params.replace(/^url\((.*)\)$/,"$1");
+                        href=convUrlToAbs(cssNodeArr.href,href);
+                        if(href){
+                            if(externalCssCache[href] !== undefined ){
+                                let item=externalCssCache[href];
+                                traversalCSSRuleList(item).then(function(obj){
+                                    _objCss.normRule.push('/*! CSS Used from : @import ' + href + ' */');
+                                    helper.mergeobjCss(_objCss, obj );
+                                    _objCss.normRule.push('/*! CSS Used end : @import ' + href + ' */');
+                                    res(_objCss);
+                                })
+                            }else{
+                                convLinkToText([href]).then(function(result){
+                                    let item=result[0];
+                                    
+                                    convTextToRules(item.cssraw).then(function(nodeArr){
+                                        item.css=nodeArr;
+                                        externalCssCache[item.url] = item.css;
+                                        traversalCSSRuleList(item.css).then(function(obj){
+                                            _objCss.normRule.push('/*! CSS Used frome : @import ' + href + ' */');
+                                            helper.mergeobjCss(_objCss, obj );
+                                            _objCss.normRule.push('/*! CSS Used end : @import ' + href + ' */');
+                                            res(_objCss);
+                                        })
+                                    });
+                                })
+                            }
+                        }else{
+                            res(_objCss);
+                        }
+                    }else if (CSSRuleListItem.type === "rule" && CSSRuleListItem.selector!=='') { // the normal "CSSStyleRule"
+                        _objCss.normRule.push(CSSRuleListItem);
+                        res(_objCss);
+                    }else{
+                        res(_objCss);
+                    };
+                }));
+            })(cssNodeArr[i])
+        };
+
+        Promise.all(promises).then(function(result) {
+            result.forEach(function(ele){
+                helper.mergeobjCss(objCss, ele );
+            })
             resolve(objCss);
         }).catch(function(err) {
             reject(err);
@@ -250,64 +386,51 @@ var helper={
             }
             a[ele]=a[ele].concat(b[ele])
         });
+    },
+    normRuleNodeToText:function(node){
+        var s="";
+        node.nodes.forEach(function(ele,idx){
+            if(ele.prop&&ele.value){
+                s+=(ele.prop+':'+ele.value+';');
+            }
+        });
+        return s
+    },
+    keyFramNodeToText:function(node){
+        var s='@'+node.name+' '+node.params+'{';
+        node.nodes.forEach(function(_node){
+            s+=(_node.selector+'{'+helper.normRuleNodeToText(_node)+'}')
+        });
+        s+='}';
+        return s
+    },
+    fontFaceNodeToText:function(node){
+        var s='@'+node.name+'{';
+        s+=helper.normRuleNodeToText(node);
+        s+='}';
+        return s
+    },
+    textToCss: function(styleContent) {
+        var doc = document,//.implementation.createHTMLDocument(""),
+            styleElement = document.createElement("style"),
+            resultCssRules;
+        styleElement.innerText = styleContent;
+        // the style will only be parsed once it is added to a document
+        doc.body.appendChild(styleElement);
+        resultCssRules=styleElement.sheet;
+        doc.body.removeChild(styleElement);
+        return resultCssRules;
     }
 }
 
 function cleanCSS(s){
-    s=s.join('');
-
-    var options = {
-        level: {
-            1: {
-                cleanupCharsets: false, // controls `@charset` moving to the front of a stylesheet; defaults to `true`
-                normalizeUrls: true, // controls URL normalization; defaults to `true`
-                optimizeBackground: false, // controls `background` property optimizations; defaults to `true`
-                optimizeBorderRadius: false, // controls `border-radius` property optimizations; defaults to `true`
-                optimizeFilter: false, // controls `filter` property optimizations; defaults to `true`
-                optimizeFont: false, // controls `font` property optimizations; defaults to `true`
-                optimizeFontWeight: false, // controls `font-weight` property optimizations; defaults to `true`
-                optimizeOutline: false, // controls `outline` property optimizations; defaults to `true`
-                removeEmpty: true, // controls removing empty rules and nested blocks; defaults to `true`
-                removeNegativePaddings: true, // controls removing negative paddings; defaults to `true`
-                removeQuotes: true, // controls removing quotes when unnecessary; defaults to `true`
-                removeWhitespace: true, // controls removing unused whitespace; defaults to `true`
-                replaceMultipleZeros: true, // contols removing redundant zeros; defaults to `true`
-                replaceTimeUnits: false, // controls replacing time units with shorter values; defaults to `true`
-                replaceZeroUnits: true, // controls replacing zero values with units; defaults to `true`
-                roundingPrecision: false, // rounds pixel values to `N` decimal places; `false` disables rounding; defaults to `false`
-                selectorsSortingMethod: 'standard', // denotes selector sorting method; can be `'natural'` or `'standard'`, `'none'`, or false (the last two since 4.1.0); defaults   o `'standard'`
-                specialComments: 'all', // denotes a number of /*! ... */ comments preserved; defaults to `all`
-                tidyAtRules: true, // controls at-rules (e.g. `@charset`, `@import`) optimizing; defaults to `true`
-                tidyBlockScopes: true, // controls block scopes (e.g. `@media`) optimizing; defaults to `true`
-                tidySelectors: true, // controls selectors optimizing; defaults to `true`,
-                transform: function () {} // defines a callback for fine-grained property optimization; defaults to no-op
-            }
-        },
-        format: {
-            breaks: { // controls where to insert breaks
-                afterAtRule: true, // controls if a line break comes after an at-rule; e.g. `@charset`; defaults to `false`
-                afterBlockBegins: true, // controls if a line break comes after a block begins; e.g. `@media`; defaults to `false`
-                afterBlockEnds: true, // controls if a line break comes after a block ends, defaults to `false`
-                afterComment: true, // controls if a line break comes after a comment; defaults to `false`
-                afterProperty: false, // controls if a line break comes after a property; defaults to `false`
-                afterRuleBegins: false, // controls if a line break comes after a rule begins; defaults to `false`
-                afterRuleEnds: true, // controls if a line break comes after a rule ends; defaults to `false`
-                beforeBlockEnds: true, // controls if a line break comes before a block ends; defaults to `false`
-                betweenSelectors: false // controls if a line break comes between selectors; defaults to `false`
-            },
-            indentBy: 0, // controls number of characters to indent with; defaults to `0`
-            indentWith: 'space', // controls a character to indent with, can be `'space'` or `'tab'`; defaults to `'space'`
-            spaces: { // controls where to insert spaces
-                aroundSelectorRelation: false, // controls if spaces come around selector relations; e.g. `div > a`; defaults to `false`
-                beforeBlockBegins: false, // controls if a space comes before a block begins; e.g. `.block {`; defaults to `false`
-                beforeValue: false // controls if a space comes before a value; e.g. `width: 1rem`; defaults to `false`
-            },
-            wrapAt: false // controls maximum line length; defaults to `false`
-        },
-        returnPromise:true
-    };
-    s = new CleanCSS(options).minify(s);
-    return s;
+    s=s.join('\n');
+    return new Promise((resolve, reject) => {
+        while(s.match(/[^{}]*{\s*}/)!==null){
+            s=s.replace(/[^{}]*{\s*}/g,'')
+        }
+        resolve(s);
+    });
 }
 
 function postFixCss(s){
@@ -331,99 +454,6 @@ function postFixCss(s){
     .replace(/(['"']?)宋体\1/,' simsun ');
 
     return s;
-}
-
-function traversalCSSRuleList(styleSheet){
-    var promises = [];
-
-    var objCss={
-        normRule:[],
-        keyFram:[],
-        fontFace:[]
-    };
-
-    var CSSRuleList=styleSheet.cssRules;
-
-    return new Promise(function (resolve, reject) {
-        if(CSSRuleList===null){
-            resolve(objCss);
-        }else if(CSSRuleList.length>0){ // annotion where the CSS rule from
-            if(styleSheet._href){
-                objCss.normRule.push('/*! CSS Used from: '+styleSheet._href+' */');
-            }else if(styleSheet.ownerNode){
-                objCss.normRule.push('/*! CSS Used from: Embedded */');
-            }
-        }
-
-        for (var i = 0; i < CSSRuleList.length; i++) {
-            (function(CSSRuleListItem){
-                promises.push(new Promise(function (res, rej){
-
-                    var _objCss={
-                        normRule:[],
-                        keyFram:[],
-                        fontFace:[]
-                    };
-                    
-                    if (CSSRuleListItem.type === 7) { // CSSKeyframesRule
-                        _objCss.keyFram.push(CSSRuleListItem);
-                        res(_objCss);
-                    }else if (CSSRuleListItem.type === 5) { // CSSFontFaceRule
-                        _objCss.fontFace.push(CSSRuleListItem);
-                        res(_objCss);
-                    }else if (CSSRuleListItem.type === 4) { // CSSMediaRule
-                        traversalCSSRuleList(CSSRuleListItem).then(function(obj){
-                            _objCss.normRule.push('\n@media ' + CSSRuleListItem.conditionText + '{\n');
-                            helper.mergeobjCss(_objCss, obj );
-                            _objCss.normRule.push('}\n');
-                            res(_objCss);
-                        });
-                    }else if (CSSRuleListItem.type === 3) { // CSSImportRule
-                        let href=CSSRuleListItem.href;
-                        if(href){
-                            if(externalCssCache[href] !== undefined ){
-                                let item=externalCssCache[href];
-                                traversalCSSRuleList(item.CSSStyleSheet).then(function(obj){
-                                    _objCss.normRule.push('/*! ' + CSSRuleListItem.cssText + ' */');
-                                    helper.mergeobjCss(_objCss, obj );
-                                    res(_objCss);
-                                })
-                            }else{
-                                convLinkToText([href]).then(function(result){
-                                    if( Object.prototype.toString.call( result ) === '[object Array]' ){
-                                        let item=result[0];
-                                        item.CSSStyleSheet=convTextToRules(item.cssraw);
-                                        externalCssCache[item.url] = item;
-                                        traversalCSSRuleList(item.CSSStyleSheet).then(function(obj){
-                                            _objCss.normRule.push('/*! ' + CSSRuleListItem.cssText + ' */');
-                                            helper.mergeobjCss(_objCss, obj );
-                                            res(_objCss);
-                                        })
-                                    }
-                                })
-                            }
-                        }else{
-                            res(_objCss);
-                        }
-                    }else if (!CSSRuleListItem.selectorText) {
-                        res(_objCss);
-                    }else{ // the normal "CSSStyleRule"
-                        _objCss.normRule.push(CSSRuleListItem)
-                        res(_objCss);
-                    };
-                }));
-            })(CSSRuleList[i])
-        };
-
-        Promise.all(promises).then(function(result) {
-            result.forEach(function(ele){
-                helper.mergeobjCss(objCss, ele );
-            })
-            resolve(objCss);
-        }).catch(function(err) {
-            reject(err);
-        });
-    });
 }
 
 function makeRequest(url) {
@@ -475,7 +505,7 @@ function convLinkToText(links) {
     var promises = [];
     return new Promise(function(resolve, reject) {
         if (links.length === 0) {
-            resolve('No need to ajax link');
+            resolve([]);
         } else {
             for (var i = 0; i < links.length; i++) {
                 promises.push(makeRequest(links[i]));
@@ -490,18 +520,14 @@ function convLinkToText(links) {
 }
 
 function convTextToRules(styleContent,href) {
-    //document.implementation.createHTMLDocument(""),
-    var styleElement = doc.createElement("style"),
-        resultCssRules;
-    styleElement.innerText = styleContent;
-    // the style will only be parsed once it is added to a Document
-    doc.body.appendChild(styleElement);
-    resultCssRules = styleElement.sheet;
-    doc.body.removeChild(styleElement);
-    if(href){
-        resultCssRules._href=href;
-    };
-    return resultCssRules;
+    return new Promise((resolve, reject) => {
+        bobfypostcss().process(styleContent,{parser:bobfysafe}).then(result=>{
+            if(href){
+                result.root.nodes.href=href;
+            };
+            resolve(result.root.nodes);
+        });
+    });
 }
 
 function convUrlToAbs(baseURI, url) {
