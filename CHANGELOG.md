@@ -1,3 +1,6 @@
+**ver 2.2.2 | 04/29/2017**
+1.Endless loop @import handling. eg: a.css import b.css and b.css import a.css
+
 **ver 2.2.1 | 04/27/2017**
 1.Better tips for first time use
 2.changed CSS parsing from Chrome to postcss

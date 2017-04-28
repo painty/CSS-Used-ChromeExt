@@ -306,7 +306,7 @@ function traversalCSSRuleList(cssNodeArr){
         }else if(cssNodeArr.length>0){ // annotion where the CSS rule from
             if(cssNodeArr.href===doc.location.href){
                 objCss.normRule.push('/*! CSS Used from: Embedded */');
-            }else if(cssNodeArr.href){
+            }else if(cssNodeArr.href&&!cssNodeArr.parentHref){
                 objCss.normRule.push('/*! CSS Used from: '+cssNodeArr.href+' */');
             }
         }
@@ -336,30 +336,32 @@ function traversalCSSRuleList(cssNodeArr){
                     }else if (CSSRuleListItem.type === "atrule" && CSSRuleListItem.name==="import") { // CSSImportRule
                         let href=CSSRuleListItem.params.replace(/^url\((.*)\)$/,"$1");
                         href=convUrlToAbs(cssNodeArr.href,href);
-                        if(href){
-                            if(externalCssCache[href] !== undefined ){
-                                let item=externalCssCache[href];
-                                traversalCSSRuleList(item).then(function(obj){
+                        if(href&&href!==cssNodeArr.parentHref){
+                            new Promise((resolve, reject) => {
+                                if(externalCssCache[href] !== undefined ){
+                                    resolve(externalCssCache[href]);
+                                }else{
+                                    convLinkToText([href]).then(function(result){
+                                        var res=result[0];
+                                        return convTextToRules(result[0].cssraw)
+                                    }).then(function(nodeArr){
+                                        nodeArr.href=href;
+                                        nodeArr.parentHref=cssNodeArr.href;
+                                        externalCssCache[href] = nodeArr;
+                                        resolve(nodeArr);
+                                    });
+                                }
+                            }).then(traversalCSSRuleList)
+                            .then(function(obj){
+                                if(obj.normRule.length>0){
                                     _objCss.normRule.push('/*! CSS Used from : @import ' + href + ' */');
                                     helper.mergeobjCss(_objCss, obj );
                                     _objCss.normRule.push('/*! CSS Used end : @import ' + href + ' */');
-                                    res(_objCss);
-                                })
-                            }else{
-                                convLinkToText([href]).then(function(result){
-                                    let item=result[0];
-                                    convTextToRules(item.cssraw).then(function(nodeArr){
-                                        item.css=nodeArr;
-                                        externalCssCache[item.url] = item.css;
-                                        traversalCSSRuleList(item.css).then(function(obj){
-                                            _objCss.normRule.push('/*! CSS Used frome : @import ' + href + ' */');
-                                            helper.mergeobjCss(_objCss, obj );
-                                            _objCss.normRule.push('/*! CSS Used end : @import ' + href + ' */');
-                                            res(_objCss);
-                                        })
-                                    });
-                                })
-                            }
+                                }else{
+                                    helper.mergeobjCss(_objCss, obj );
+                                }
+                                res(_objCss);
+                            });
                         }else{
                             res(_objCss);
                         }
@@ -397,7 +399,7 @@ var helper={
         var s="";
         node.nodes.forEach(function(ele,idx){
             if(ele.prop&&ele.value){
-                var before=ele.before.replace(/[\s]*/,'');
+                var before=ele.raws.before.replace(/[\s]*/,'');
                 s+=(before+ele.prop+':'+ele.value+(ele.important?'!important;':';'));
             }
         });
