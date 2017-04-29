@@ -186,7 +186,6 @@ function testDomMatch($0,objCss,localCount){
                             if(fontfamilyOfRule.cssRules[0]&&fontfamilyOfRule.cssRules[0].style.fontFamily){
                                 fontFaceUsed=fontFaceUsed.concat(fontfamilyOfRule.cssRules[0].style.fontFamily.split(', '));
                             }
-                            
                             return;
                         }
                     }
@@ -204,7 +203,7 @@ function testDomMatch($0,objCss,localCount){
                 return self.indexOf(v) === i;
             });
             result.forEach(function(ele){
-                // ele:string
+                // typeof ele:string
                 if(ele.length>0){
                     matched.push(ele);
                 }
@@ -268,8 +267,8 @@ function generateRulesAll(){
                 }else{
                     // style tag
                     // convert urls in style tag to abs
-                    let html=doc.styleSheets[x].ownerNode.innerHTML.replace(/url\((.*?)\)/g, function(a, p1) {
-                        return 'url(' + convUrlToAbs(doc.location.href, p1) + ')';
+                    let html=doc.styleSheets[x].ownerNode.innerHTML.replace(/url\((['"]?)(.*?)\1\)/g, function(a, p1,p2) {
+                        return 'url(' + convUrlToAbs(doc.location.href, p2) + ')';
                     });
                     convTextToRules(html,doc.location.href).then(function(cssNodeArr){
                         traversalCSSRuleList(cssNodeArr).then(function(obj){
@@ -312,7 +311,7 @@ function traversalCSSRuleList(cssNodeArr){
         }
 
         for (var i = 0; i < cssNodeArr.length; i++) {
-            (function(CSSRuleListItem){
+            (function(CSSRuleListItem,i){
                 promises.push(new Promise(function (res, rej){
 
                     var _objCss={
@@ -334,9 +333,18 @@ function traversalCSSRuleList(cssNodeArr){
                             res(_objCss);
                         });
                     }else if (CSSRuleListItem.type === "atrule" && CSSRuleListItem.name==="import") { // CSSImportRule
-                        let href=CSSRuleListItem.params.replace(/^url\((.*)\)$/,"$1");
+                        let isValidImport=true;
+                        for (let j = 0; j < i; j++) {
+                            let rule=cssNodeArr[j];
+                            if((rule.type==='rule')||(rule.type==='atrule'&&rule.name.match(/^charset|import$/)===null)){
+                                isValidImport=false;
+                                break;
+                            }
+                        }
+                        let href=CSSRuleListItem.params.match(/^(url\((['"]?)(.*?)\2\)|(['"])(.*?)\4)/);
+                        href=href[3]||href[5]||'';
                         href=convUrlToAbs(cssNodeArr.href,href);
-                        if(href&&href!==cssNodeArr.parentHref){
+                        if(isValidImport&&href&&href!==cssNodeArr.parentHref){
                             new Promise((resolve, reject) => {
                                 if(externalCssCache[href] !== undefined ){
                                     resolve(externalCssCache[href]);
@@ -354,9 +362,9 @@ function traversalCSSRuleList(cssNodeArr){
                             }).then(traversalCSSRuleList)
                             .then(function(obj){
                                 if(obj.normRule.length>0){
-                                    _objCss.normRule.push('/*! CSS Used from : @import ' + href + ' */');
+                                    _objCss.normRule.push('/*! @import ' + href + ' */');
                                     helper.mergeobjCss(_objCss, obj );
-                                    _objCss.normRule.push('/*! CSS Used end : @import ' + href + ' */');
+                                    _objCss.normRule.push('/*! end @import */');
                                 }else{
                                     helper.mergeobjCss(_objCss, obj );
                                 }
@@ -372,7 +380,7 @@ function traversalCSSRuleList(cssNodeArr){
                         res(_objCss);
                     };
                 }));
-            })(cssNodeArr[i])
+            })(cssNodeArr[i],i)
         };
 
         Promise.all(promises).then(function(result) {
@@ -435,34 +443,43 @@ var helper={
 function cleanCSS(s){
     s=s.join('\n');
     return new Promise((resolve, reject) => {
-        while(s.match(/[^{}]*{\s*}/)!==null){
-            s=s.replace(/[^{}]*{\s*}/g,'')
+        while(s.match(/[^{}\n\r]*{\s*}/)!==null){
+            s=s.replace(/[^{}\n\r]*{\s*}/g,'')
         }
         resolve(s);
     });
 }
 
 function postFixCss(s){
-    s=s.split("\n");
+    s=s.split(/\n+/);
 
     // remove the last comments line
     // which have no rules
-    while(s.length>0&&s[s.length-1].match(/^\/\*\! |^$/)!==null){
-        s=s.slice(0,s.length-1);
+    // endOfRuleLine:the end of the lastRule line number
+    var endOfRuleLine=s.length;
+    var fontFacePosition=s.indexOf('/*! CSS Used fontfaces */');
+    var keyFramsPosition=s.indexOf('/*! CSS Used keyframes */');
+    if(keyFramsPosition!==-1){
+        endOfRuleLine=keyFramsPosition;
+    }else if(fontFacePosition!==-1){
+        endOfRuleLine=fontFacePosition;
+    }
+    while(s.length>0&&s[endOfRuleLine-1].match(/^\/\*\! |^$/)!==null){
+        s.splice(endOfRuleLine-1,1);
+        endOfRuleLine--;
     }
     var arr=[],regFrom=/^\/\*\! CSS Used from: /;
-    for (var i = 0; i < s.length; i++) {
-        if( (s[i].match(regFrom)!==null) && ( i+1===s.length || ( s[i+1].match(regFrom)!==null ) )){
+    for (var i = 0; i < endOfRuleLine; i++) {
+        if( (s[i].match(regFrom)!==null) && ( i+1===endOfRuleLine || ( s[i+1].match(regFrom)!==null ) )){
             continue;
         }else{
             arr.push(s[i]);
         }
     }
-    s=arr.join('\n');
-    s = s.replace(/(['"']?)微软雅黑\1/,'"Microsoft Yahei"')
-    .replace(/(['"']?)宋体\1/,' simsun ');
+    // concat the latter fontface and keyframs part
+    arr=arr.concat(s.slice(endOfRuleLine));
 
-    return s;
+    return arr.join('\n').replace(/(['"']?)微软雅黑\1/,'"Microsoft Yahei"'); //.replace(/(['"']?)宋体\1/,' simsun ');
 }
 
 function makeRequest(url) {
@@ -484,8 +501,8 @@ function makeRequest(url) {
                     decoder = new TextDecoder('gbk');
                 };
                 result.cssraw = decoder.decode(xhr.response)
-                    .replace(/url\((.*?)\)/g, function(a, p1) {
-                        return 'url(' + convUrlToAbs(url, p1) + ')';
+                    .replace(/url\((['"]?)(.*?)\1\)/g, function(a, p1,p2) {
+                        return 'url(' + convUrlToAbs(url, p2) + ')';
                     });
                 result.status=this.status;
                 result.statusText=this.statusText;
@@ -540,9 +557,6 @@ function convTextToRules(styleContent,href) {
 }
 
 function convUrlToAbs(baseURI, url) {
-    var quote = /^['"]*(.*?)['"]*$/;
-    baseURI = baseURI.replace(quote, '$1');
-    url = url.replace(quote, '$1');
     var _baseURI = new URI(baseURI),
         _url = new URI(url);
 
