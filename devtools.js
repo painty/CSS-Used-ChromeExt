@@ -1,17 +1,21 @@
 var outp1, outp2, pop,tips, sidebarvisible=false;
 
+var accessToFileURLs=true;
+
 var newpage=true;
+
+var initialText='<li id="openCSSUsedSettings">Active the "Allow access to file URLs" for file:/// page</li><li>Reload the inspected page</li><li>Reopen the Devtool</li><li>Select an elements on the left';
 
 function evalGetc() {
     newpage=false;
     if(!sidebarvisible) return;
     pop.style.display='block';
-    tips.innerHTML='Select an elements on the left<br><small>a page reload may be needed for the first time use</small>';
+    tips.innerHTML=initialText;
 
     var arrFrameURL=[];
     chrome.devtools.inspectedWindow.getResources(function(resources){
         for (var i = 0; i < resources.length; i++) {
-            if(resources[i].type==='document' && resources[i].url.match(/^https?:\/\//)!==null){
+            if(resources[i].type==='document' && resources[i].url.match(/^(https?:|file:\/)\/\//)!==null){
                 arrFrameURL.push(resources[i].url);
             }
         }
@@ -26,7 +30,7 @@ function evalGetc() {
 
 function evalGetcSTOP() {
     pop.style.display='block';
-    tips.innerHTML='Select an elements on the left<br><small>a page reload may be needed for the first time use</small>';
+    tips.innerHTML=initialText;
 
     var arrFrameURL=[];
     chrome.devtools.inspectedWindow.getResources(function(resources){
@@ -58,8 +62,11 @@ chrome.devtools.panels.elements.createSidebarPane(
             outp1=win.document.body.querySelector('#outp1');
             outp2=win.document.body.querySelector('#outp2');
             pop=win.document.body.querySelector('#pop');
-            tips=win.document.body.querySelector('#pop p');
+            tips=win.document.body.querySelector('#pop ol');
             input=win.document.body.querySelector('input[name=data]');
+            if(accessToFileURLs){
+                win.document.body.className='havefileaccess';
+            }
             evalGetc();
         });
         sidebar.onHidden.addListener(function(){
@@ -84,7 +91,11 @@ backgroundPageConnection.postMessage({
 });
 
 backgroundPageConnection.onMessage.addListener(function (message, sender, sendResponse) {
-    if(message.err!==undefined){
+    // console.log(message);
+    if(message.info==='fileURLsNotAllowed'){
+        accessToFileURLs=false;
+        // console.log('Please "allow access to file URLs" in the following screen.');
+    }else if(message.err!==undefined){
         tips.innerHTML='ERROR:'+message.err;
         pop.style.display='block';
     }else if(message.status!==undefined){

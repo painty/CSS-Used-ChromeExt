@@ -21,3 +21,11 @@ qr('#copy').addEventListener('click', function(){
     qr('#outp2').select();
     document.execCommand('copy');
 });
+
+qr("#pop").addEventListener("click", function(e) {
+    if(e.target && e.target.id == "openCSSUsedSettings") {
+        chrome.extension.sendMessage({
+            action:'openCSSUsedSettings'
+        })
+    }
+});

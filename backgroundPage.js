@@ -1,6 +1,7 @@
 var connections = {};
 
 chrome.runtime.onConnect.addListener(function (port) {
+    if (port.name !== "panel") return;
     var extensionListener = function (message, sender, sendResponse) {
         // The original connection event doesn't include the tab ID of the
         // DevTools page, so we need to send it explicitly.
@@ -25,7 +26,22 @@ chrome.runtime.onConnect.addListener(function (port) {
           }
         }
     });
+
+    chrome.extension.isAllowedFileSchemeAccess(function(isAllowedAccess) {
+        if (isAllowedAccess) return; // Great, we've got access
+        port.postMessage({
+            info: 'fileURLsNotAllowed'
+        });
+    });
 });
+
+chrome.extension.onMessage.addListener(function (message, sender, sendResponse) {
+    if(message.action==='openCSSUsedSettings'){
+        chrome.tabs.create({
+            url: 'chrome://extensions/?id=' + chrome.runtime.id
+        });
+    }
+})
 
 // Receive message from content script and relay to the devTools page for the
 // current tab

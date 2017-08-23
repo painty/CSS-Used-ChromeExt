@@ -12,9 +12,12 @@ form{}
 .pop{width:100%;height:100%;position:fixed;top:0px;left:0px;text-align:center;background:rgba(255,255,255,0.77);display:none;font-size:0px;}
 .pop:after{content:'';width:0px;height:100%;display:inline-block;vertical-align:middle;}
 .pop p{margin:auto;font-size:12px;display:inline-block;vertical-align:middle;}
+.pop ol{font-size:12px;text-align:left;display:inline-block;line-height:2;vertical-align:middle;}
 button{position:relative;font-size:12px;display:block;margin-right:10px;}
 #issuebtn{float:right;margin-right:10px;cursor:pointer;position:absolute;right:10px;top:10px;z-index:1;}
 #issuebtn:hover{}
 form{font-size:12px;margin-right:10px;position:relative;display:block;}
-form button{margin: 0;}
+form button{margin:0;}
 .operate{position:relative;display:flex;clear:both;margin-left:10px;}
+#openCSSUsedSettings{text-decoration:underline;cursor:pointer;color:blue;}
+.havefileaccess #openCSSUsedSettings{display:none;}
