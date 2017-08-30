@@ -57,7 +57,8 @@ function getC($0) {
 
     var links=[];
     Array.prototype.forEach.call($0.ownerDocument.querySelectorAll('link[rel~="stylesheet"][href]'), function(ele) {
-        if(ele.href && (externalCssCache[ele.href] === undefined) ){
+        // if href==='' , ele.getAttribute('href') !== ele.href
+        if(ele.getAttribute('href') && (externalCssCache[ele.href] === undefined) ){
             links.push(ele.href);
         }
     });
