@@ -1,3 +1,7 @@
+**ver 2.2.6 | 08/30/2017**
+
+1.Fix. css link with empty href
+
 **ver 2.2.5 | 08/25/2017**
 
 1.Change Send-to-codepen's url from "http://" to "https://"
