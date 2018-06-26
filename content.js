@@ -261,7 +261,8 @@ function generateRulesAll(){
                 var cssHref=doc.styleSheets[x].ownerNode.href;
                 var cssNodeArr;
                 if(cssHref){
-                    cssNodeArr=externalCssCache[cssHref];
+                    cssNodeArr = externalCssCache[cssHref];
+                    cssNodeArr.media = doc.styleSheets[x].media;
                     traversalCSSRuleList(cssNodeArr).then(function(obj){
                         res(obj);
                     })
@@ -271,7 +272,9 @@ function generateRulesAll(){
                     let html=doc.styleSheets[x].ownerNode.innerHTML.replace(/url\((['"]?)(.*?)\1\)/g, function(a, p1,p2) {
                         return 'url(' + convUrlToAbs(doc.location.href, p2) + ')';
                     });
+                    let _x = x;
                     convTextToRules(html,doc.location.href).then(function(cssNodeArr){
+                        cssNodeArr.media = doc.styleSheets[_x].media;
                         traversalCSSRuleList(cssNodeArr).then(function(obj){
                             res(obj);
                         })
@@ -388,6 +391,10 @@ function traversalCSSRuleList(cssNodeArr){
             result.forEach(function(ele){
                 helper.mergeobjCss(objCss, ele );
             })
+            if (cssNodeArr.media&&cssNodeArr.media.length > 0) {
+                objCss.normRule.splice(1, 0, `@media ${cssNodeArr.media.mediaText}{`)
+                objCss.normRule.push('}');
+            }
             resolve(objCss);
         }).catch(function(err) {
             reject(err);
