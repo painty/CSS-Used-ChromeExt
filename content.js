@@ -563,7 +563,7 @@ function convLinkToText(links) {
 
 function convTextToRules(styleContent,href) {
     return new Promise((resolve, reject) => {
-        bobfypostcss().process(styleContent,{parser:bobfysafe}).then(result=>{
+        bobfypostcss().process(styleContent,{from:undefined,parser:bobfysafe}).then(result=>{
             if(href){
                 result.root.nodes.href=href;
             };
