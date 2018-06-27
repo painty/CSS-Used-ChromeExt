@@ -307,10 +307,14 @@ function traversalCSSRuleList(cssNodeArr){
         if(cssNodeArr===undefined||cssNodeArr.length===0){
             resolve(objCss);
         }else if(cssNodeArr.length>0){ // annotion where the CSS rule from
+            let strMediaText='';
+            if (cssNodeArr.media&&cssNodeArr.media.length > 0) {
+                strMediaText=`; media=${cssNodeArr.media.mediaText} `;
+            }
             if(cssNodeArr.href===doc.location.href){
-                objCss.normRule.push('/*! CSS Used from: Embedded */');
+                objCss.normRule.push(`/*! CSS Used from: Embedded ${strMediaText}*/`);
             }else if(cssNodeArr.href&&!cssNodeArr.parentHref){
-                objCss.normRule.push('/*! CSS Used from: '+cssNodeArr.href+' */');
+                objCss.normRule.push(`/*! CSS Used from: ${cssNodeArr.href} ${strMediaText}*/`);
             }
         }
 
@@ -449,6 +453,9 @@ var helper={
 }
 
 function cleanCSS(s){
+    s=s.map(function(ele) {
+        return ele.replace(/[\n\r]/g,' ');
+    });
     s=s.join('\n');
     return new Promise((resolve, reject) => {
         while(s.match(/[^{}\n\r]*{\s*}/)!==null){

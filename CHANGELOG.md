@@ -1,3 +1,11 @@
+**ver 2.2.7 | 06/27/2018**
+
+1. Add. Media property of css link/tag preserved.
+2. Update dependencies
+
+    "postcss": "6.0.23",
+    "postcss-safe-parser": "3.0.1"
+
 **ver 2.2.6 | 08/30/2017**
 
 1.Fix. css link with empty href
