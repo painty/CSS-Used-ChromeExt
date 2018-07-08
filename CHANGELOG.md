@@ -1,3 +1,7 @@
+**ver 2.2.8 | 07/08/2018**
+
+1. Fix. @import inside media query should be invalid.
+
 **ver 2.2.7 | 06/27/2018**
 
 1. Add. Media property of css link/tag preserved.
