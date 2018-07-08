@@ -1,3 +1,4 @@
+/* global URI ,chrome,isutf8,bobfypostcss,bobfysafe*/
 // chrome.runtime.sendMessage=function(){};
 var debugMode=false;
 var globalCount = 0;
@@ -183,7 +184,7 @@ function testDomMatch($0,objCss,localCount){
                                     }));
                                 };
                             });
-                            fontfamilyOfRule=helper.textToCss(cssText);
+                            let fontfamilyOfRule=helper.textToCss(cssText);
                             if(fontfamilyOfRule.cssRules[0]&&fontfamilyOfRule.cssRules[0].style.fontFamily){
                                 fontFaceUsed=fontFaceUsed.concat(fontfamilyOfRule.cssRules[0].style.fontFamily.split(', '));
                             }
@@ -349,10 +350,14 @@ function traversalCSSRuleList(cssNodeArr){
                                 break;
                             }
                         }
-                        let href=CSSRuleListItem.params.match(/^(url\((['"]?)(.*?)\2\)|(['"])(.*?)\4)/);
-                        href=href[3]||href[5]||'';
-                        href=convUrlToAbs(cssNodeArr.href,href);
-                        if(isValidImport&&href&&href!==cssNodeArr.parentHref){
+                        if(!cssNodeArr.href){
+                            // such as import inside media query
+                            isValidImport=false;
+                        }
+                        let importParamsMatch=CSSRuleListItem.params.match(/^(url\((['"]?)(.*?)\2\)|(['"])(.*?)\4)\s*(.*)$/);
+                        let href=importParamsMatch[3]||importParamsMatch[5]||'';
+                        let media=importParamsMatch[6];
+                        if(isValidImport&&(href=convUrlToAbs(cssNodeArr.href,href))&&href!==cssNodeArr.parentHref){
                             new Promise((resolve, reject) => {
                                 if(externalCssCache[href] !== undefined ){
                                     resolve(externalCssCache[href]);
@@ -370,8 +375,10 @@ function traversalCSSRuleList(cssNodeArr){
                             }).then(traversalCSSRuleList)
                             .then(function(obj){
                                 if(obj.normRule.length>0){
-                                    _objCss.normRule.push('/*! @import ' + href + ' */');
+                                    _objCss.normRule.push('/*! @import ' + href + media + ' */');
+                                    media.length&&_objCss.normRule.push('\n@media ' + media + '{');
                                     helper.mergeobjCss(_objCss, obj );
+                                    media.length&&_objCss.normRule.push('}');
                                     _objCss.normRule.push('/*! end @import */');
                                 }else{
                                     helper.mergeobjCss(_objCss, obj );
@@ -458,9 +465,16 @@ function cleanCSS(s){
     });
     s=s.join('\n');
     return new Promise((resolve, reject) => {
-        while(s.match(/[^{}\n\r]*{\s*}/)!==null){
-            s=s.replace(/[^{}\n\r]*{\s*}/g,'')
+        var reg1=/[^{}\n\r]*{\s*}/g;
+        var reg2=/\n\n/g;
+        var reg3=/\/\*! @import.*[\n]\/\*! end @import \*\//g;
+        var regAll=new RegExp(`${reg1.source}|${reg2.source}|${reg3.source}`);
+        while(s.match(regAll)!==null){
+            s=s.replace(reg1,'');
+            s=s.replace(reg2,'\n');
+            s=s.replace(reg3,'');
         }
+        s=s.replace(/^\s*/mg,'');
         resolve(s);
     });
 }
@@ -479,11 +493,11 @@ function postFixCss(s){
     }else if(fontFacePosition!==-1){
         endOfRuleLine=fontFacePosition;
     }
-    while(s.length>0&&s[endOfRuleLine-1].match(/^\/\*\! |^$/)!==null){
+    while(s.length>0&&s[endOfRuleLine-1].match(/^\/\*! |^$/)!==null){
         s.splice(endOfRuleLine-1,1);
         endOfRuleLine--;
     }
-    var arr=[],regFrom=/^\/\*\! CSS Used from: /;
+    var arr=[],regFrom=/^\/\*! CSS Used from: /;
     for (var i = 0; i < endOfRuleLine; i++) {
         if( (s[i].match(regFrom)!==null) && ( i+1===endOfRuleLine || ( s[i+1].match(regFrom)!==null ) )){
             continue;
@@ -517,7 +531,7 @@ function makeRequest(url) {
                 };
                 result.cssraw = decoder.decode(xhr.response)
                     .replace(/url\((['"]?)(.*?)\1\)/g, function(a, p1,p2) {
-                        return 'url(' + convUrlToAbs(url, p2) + ')';
+                        return `url(${p1}${convUrlToAbs(url, p2)}${p1})`;
                     });
                 result.status=this.status;
                 result.statusText=this.statusText;
