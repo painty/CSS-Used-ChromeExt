@@ -1,6 +1,7 @@
-**ver 2.2.9 | 07/11/2018**
+**ver 2.2.10 | 07/11/2018**
 
 1. Better regex for cleaning empty rules.
+2. Add. scrollbar style
 
 **ver 2.2.8 | 07/08/2018**
 

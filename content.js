@@ -8,7 +8,7 @@ var doc=document;
 
 // may match accoding to interaction
 var pseudocls = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
-    pseudoele = '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection))|-ms-clear|-ms-reveal|-ms-expand|-moz-focusring|after|before|first-letter|first-line';
+    pseudoele = '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection|resizer|scrollbar(-(button|thumb|corner|track(-piece)?))?))|-ms-(clear|reveal|expand)|-moz-focusring|after|before|first-letter|first-line';
 
 function getC($0) {
     globalCount++;
