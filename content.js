@@ -465,15 +465,19 @@ function cleanCSS(s){
     });
     s=s.join('\n');
     return new Promise((resolve, reject) => {
-        var reg1=/[^{}\n\r]*{\s*}/g;
+        // empty rules
+        var reg1=/^[^{}\n]*{\s*}/gm;
+        // multiple empty lines
         var reg2=/\n\n/g;
-        var reg3=/\/\*! @import.*[\n]\/\*! end @import \*\//g;
-        var regAll=new RegExp(`${reg1.source}|${reg2.source}|${reg3.source}`);
-        while(s.match(regAll)!==null){
+        // no import rule used
+        var reg3=/\/\*! @import.*\n\/\*! end @import \*\//g;
+
+        while(s.match(reg1)!==null || s.match(reg2)!==null || s.match(reg3)!==null){
             s=s.replace(reg1,'');
             s=s.replace(reg2,'\n');
             s=s.replace(reg3,'');
         }
+        //trim heading white space
         s=s.replace(/^\s*/mg,'');
         resolve(s);
     });

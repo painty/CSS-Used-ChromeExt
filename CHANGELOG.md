@@ -1,3 +1,7 @@
+**ver 2.2.9 | 07/11/2018**
+
+1. Better regex for cleaning empty rules.
+
 **ver 2.2.8 | 07/08/2018**
 
 1. Fix. @import inside media query should be invalid.
