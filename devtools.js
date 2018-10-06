@@ -1,4 +1,5 @@
-var outp1, outp2, pop,tips, sidebarvisible=false;
+/* global chrome */
+var outp1, outp2,input,pop,tips, sidebarvisible=false;
 
 var accessToFileURLs=true;
 
