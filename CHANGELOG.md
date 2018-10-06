@@ -1,3 +1,8 @@
+**ver 2.2.11 | 10/06/2018**
+
+1. Fix. preview button doesn't work #15 #16
+2. specify protocol for img in Preview
+
 **ver 2.2.10 | 07/11/2018**
 
 1. Better regex for cleaning empty rules.
