@@ -14,7 +14,7 @@ If the selected DOM is the body, the result will be all the used css by the whol
 
 ## Usage
 
-![How to use](http://ww2.sinaimg.cn/large/4e71f332gw1et7h0w4hxdg20i20go1kx.gif)
+![CSS-Used](https://user-images.githubusercontent.com/5387771/47267284-41b36a80-d574-11e8-9b83-c7896d428827.jpg)
 
 F12 open the Developer Tools, select the dom and active the "CSS Used" pannel. The used CSS rules of the Selected dom and its children's will be listed in the right textare.
 
@@ -27,6 +27,8 @@ You can click "Preview" to see the selected part with clean style rules.
  Either changing this rule's selector to `p{...}` or giving the `<p>` a `.wrap` parent in the final HTML.
 
 2. Vendor prefixes will be ignored because the style rules' txt-to-object is processed by chrome.
+
+3. Won't work on Chrome Web Store pages, which is `https://chrome.google.com/webstore/....`
 
 ## Changelog
 
