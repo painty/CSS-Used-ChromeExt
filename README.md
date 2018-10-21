@@ -24,7 +24,7 @@ You can click "Preview" to see the selected part with clean style rules.
 
 1. As for the CSS rule like `.wrap p{...}`, if only `<p>` is selected, the result `.wrap p{...}` may not apply directly to `<p>`.
 
- Either changing this rule's selector to `p{...}` or giving the `<p>` a `.wrap` parent in the final HTML.
+    Either changing this rule's selector to `p{...}` or giving the `<p>` a `.wrap` parent in the final HTML.
 
 2. Vendor prefixes will be ignored because the style rules' txt-to-object is processed by chrome.
 
