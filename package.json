@@ -1,0 +1,36 @@
+{
+  "name": "css-used-chrome-ext",
+  "version": "2.2.11",
+  "description": "A chrome extension to get all css rules used by the selected DOM and its children.",
+  "main": "./src/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify ./src/main.js -s getCssUsed -p tinyify -d -o ./dest/content.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/painty/CSS-Used-ChromeExt.git"
+  },
+  "keywords": [
+    "chrome-extension",
+    "chrome-devtools",
+    "css-usage",
+    "css-rules"
+  ],
+  "author": "Bobscript",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/painty/CSS-Used-ChromeExt/issues"
+  },
+  "homepage": "https://github.com/painty/CSS-Used-ChromeExt#readme",
+  "dependencies": {
+    "is-utf8": "^0.2.1",
+    "postcss": "^7.0.5",
+    "postcss-safe-parser": "^4.0.1",
+    "urijs": "^1.19.1"
+  },
+  "devDependencies": {
+    "browserify": "^16.2.3",
+    "tinyify": "^2.4.3"
+  }
+}

@@ -21,7 +21,7 @@ function evalGetc() {
             }
         }
         arrFrameURL.forEach(function(ele){
-            chrome.devtools.inspectedWindow.eval('getC($0)',{
+            chrome.devtools.inspectedWindow.eval('getCssUsed($0)',{
                 frameURL:ele,
                 useContentScriptContext: true
             });
@@ -41,7 +41,7 @@ function evalGetcSTOP() {
             }
         }
         arrFrameURL.forEach(function(ele){
-            chrome.devtools.inspectedWindow.eval('getC()',{
+            chrome.devtools.inspectedWindow.eval('getCssUsed()',{
                 frameURL:ele,
                 useContentScriptContext: true
             });
