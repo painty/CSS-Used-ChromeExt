@@ -7,7 +7,7 @@ textarea{width:100%;height:100%;box-sizing:border-box;padding:10px;border:1px so
 .outp1:before,.outp2:before{position:absolute;top:0px;}
 .outp1:before{content:"HTML";}
 .outp2{float:right;width:100%;}
-.outp2:before{content:"CSS Used";}
+.outp2:before{content:"CSS Used by $0 and its children:";}
 form{}
 .pop{width:100%;height:100%;position:fixed;top:0px;left:0px;text-align:center;background:rgba(255,255,255,0.77);display:none;font-size:0px;}
 .pop:after{content:'';width:0px;height:100%;display:inline-block;vertical-align:middle;}

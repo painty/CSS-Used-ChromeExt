@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>CSS Used Test</title>
+  <link rel="stylesheet" type="text/css" href="index.css">
+  <link rel="stylesheet" type="text/css" href="font.css">
+  <style type="text/css" media="print">
+     i{color:#789;font-family: WBswficon}
+  </style>
+</head>
+
+<body>
+  <a>123</a>
+  <b>bbbbb</b>
+  <i>iiiii</i>
+  <p class="S_spetxt">.S_spetxt</p>
+  <iframe src="iframe.html" frameborder="0"></iframe>
+  <p>SEE the Console.</p>
+  <script src="../dest/content.js"></script>
+  <script src="./expected.js"></script>
+  <script>
+    var chrome = {
+      runtime: {
+        sendMessage: function (obj) {
+          if(obj.css){
+            if(obj.css===expected){
+              console.log('Test Passed');
+            }else{
+              console.log('Not the Same As Expected',obj);
+            }
+          }
+        }
+      }
+    }
+    getCssUsed(document.documentElement);
+  </script>
+</body>
+
+</html>

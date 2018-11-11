@@ -4,9 +4,9 @@
   "description": "A chrome extension to get all css rules used by the selected DOM and its children.",
   "main": "./src/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "http-server ./ -c-1 -g -p8080 -s -o http://127.0.0.1:8080/test/",
     "build": "browserify ./src/main.js -s getCssUsed -p tinyify -d -o ./dest/content.js",
-    "watch": "watchify ./src/main.js -s getCssUsed -p tinyify -d -o ./dest/content.js"
+    "dev": "watchify ./src/main.js -s getCssUsed -d -o ./dest/content.js"
   },
   "repository": {
     "type": "git",
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "browserify": "^16.2.3",
+    "http-server": "^0.11.1",
     "tinyify": "^2.4.3",
     "watchify": "^3.11.0"
   }
