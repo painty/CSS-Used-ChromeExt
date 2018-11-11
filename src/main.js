@@ -5,7 +5,6 @@ const safe = require('postcss-safe-parser');
 const isutf8 = require('is-utf8');
 const URI = require('urijs');
 var debugMode=false;
-var globalCount = 0;
 var externalCssCache = {};
 var toList=[]; //store testDomMatch timers
 var doc=document;
@@ -15,7 +14,6 @@ var pseudocls = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|ac
     pseudoele = '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection|resizer|scrollbar(-(button|thumb|corner|track(-piece)?))?))|-ms-(clear|reveal|expand)|-moz-(focusring)|-webkit-(details-marker)|after|before|first-letter|first-line';
 
 function getC($0) {
-    globalCount++;
     toList.forEach(function(ele){
         clearTimeout(ele);
     });
@@ -86,7 +84,7 @@ function getC($0) {
     .then(generateRulesAll)
     .then(function(objCss){ // {fontFace : Array, keyFram : Array, normRule : Array}
         debugMode&&console.log(objCss,externalCssCache);
-        return testDomMatch($0,objCss,globalCount);
+        return testDomMatch($0,objCss);
     }).then(function(data){
         return cleanCSS(data)
     }).then(function(data){
@@ -114,9 +112,8 @@ function getC($0) {
     });
 }
 
-function testDomMatch($0,objCss,localCount){
+function testDomMatch($0,objCss){
     var promises = [];
-    var x,y;
     var matched=[];
     var keyFramUsed = [];
     var fontFaceUsed = [];
@@ -132,10 +129,6 @@ function testDomMatch($0,objCss,localCount){
         objCss.normRule.forEach(function(rule,idx){
             promises.push(new Promise(function (res, rej){
                 var timer=setTimeout(function(){
-                    if(localCount!==globalCount){
-                        // resolve(matched);
-                        return;
-                    }
                     if(idx%100===0){
                         chrome.runtime.sendMessage({
                             dom:domlist.length-1,
@@ -618,18 +611,6 @@ function convUrlToAbs(baseURI, url) {
         return url
     }else{
         return _url.absoluteTo(baseURI).toString()
-    }
-}
-
-// cssText won't show background-size
-// even it is in the css file
-// but -webkit-background-size do
-function chromeBugFix(rule) {
-    var bas = rule.style.backgroundSize;
-    if (bas !== "initial" && bas !== "") {
-        return 'background-size:' + bas + ';}';
-    } else {
-        return '}';
     }
 }
 
