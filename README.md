@@ -33,6 +33,9 @@ You can click "Preview" to see the selected part with clean style rules.
 
 Go to the [Changelog page](CHANGELOG.md)
 
-## To Do
+## Dev
 
- --
+ 1. `npm install` to install all the dependencies
+ 2. `npm run watch` watch & gernerate an unminified version of `content.js` for debug
+ 3. `npm run build` gernerate a minified version of `content.js`
+ 3. `npm run test` will start a local http://127.0.0.1:8080 server. Visiting the test page and check the console

@@ -1,3 +1,7 @@
+**ver 2.2.12 | 11/11/2018**
+
+1. No new feature or bugfix. Just split the content.js into some modules.
+
 **ver 2.2.11 | 10/06/2018**
 
 1. Fix. preview button doesn't work [#15](https://github.com/painty/CSS-Used-ChromeExt/issues/15) [#16](https://github.com/painty/CSS-Used-ChromeExt/pull/16)
