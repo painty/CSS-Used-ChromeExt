@@ -57,7 +57,7 @@ chrome.devtools.panels.elements.createSidebarPane(
     "CSS Used",
     function(sidebar) {
         sidebar.setHeight('calc(100vh - 48px)');
-        sidebar.setPage('outp.html');
+        sidebar.setPage('pannel.html');
         sidebar.onShown.addListener(function(win){
             sidebarvisible=true;
             outp1=win.document.body.querySelector('#outp1');

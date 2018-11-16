@@ -5,8 +5,8 @@
   "main": "./src/main.js",
   "scripts": {
     "test": "http-server ./ -c-1 -g -p8080 -s -o http://127.0.0.1:8080/test/",
-    "build": "browserify ./src/main.js -s getCssUsed -p tinyify -o ./dest/content.js",
-    "dev": "watchify ./src/main.js -s getCssUsed -d -o ./dest/content.js"
+    "build": "browserify ./src/main.js -s getCssUsed -p tinyify -o ./dest/asset/js/content.js",
+    "dev": "watchify ./src/main.js -s getCssUsed -d -o ./dest/asset/js/content.js"
   },
   "repository": {
     "type": "git",
