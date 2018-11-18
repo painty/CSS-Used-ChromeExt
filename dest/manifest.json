@@ -1,6 +1,6 @@
 {
   "name": "CSS Used",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "permissions": ["<all_urls>","tabs"],
   "author": "Bob",
   "icons": {
