@@ -47,11 +47,15 @@ function evalGetc(cancel) {
 }
 
 chrome.devtools.panels.elements.onSelectionChanged.addListener(function () {
+  // console.log('onSelectionChanged');
   evalGetc();
 });
 
 chrome.devtools.network.onNavigated.addListener(function(){
+  // console.log('onNavigated');
+  // showMessage('New page')
   // evalGetc();
+  initialText=`on Navigated.<br>Select another dom on the left<br>to trigger the calulation`
 });
 
 chrome.devtools.panels.elements.createSidebarPane(
@@ -101,7 +105,7 @@ backgroundPageConnection.onMessage.addListener(function (message, sender, sendRe
     if (message.status === '$load') {
 
     } else {
-
+      showMessage(message.status);
     }
   } else if (message.css === undefined) {
     showMessage('The selected dom has ' + message.dom + (message.dom > 0 ? ' children' : ' child') + '.<br>Page rules are about ' + message.rule + '.<br>Traversing the ' + message.rulenow + 'th rule...')
