@@ -102,11 +102,7 @@ backgroundPageConnection.onMessage.addListener(function (message, sender, sendRe
   } else if (message.err !== undefined) {
     showMessage('ERROR:' + message.err);
   } else if (message.status !== undefined) {
-    if (message.status === '$load') {
-
-    } else {
-      showMessage(message.status);
-    }
+    showMessage(message.status);
   } else if (message.css === undefined) {
     showMessage('The selected dom has ' + message.dom + (message.dom > 0 ? ' children' : ' child') + '.<br>Page rules are about ' + message.rule + '.<br>Traversing the ' + message.rulenow + 'th rule...')
   } else {
