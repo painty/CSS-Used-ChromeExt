@@ -1,3 +1,4 @@
+/* global chrome */
 var connections = {};
 
 chrome.runtime.onConnect.addListener(function (port) {
