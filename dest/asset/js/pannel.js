@@ -26,9 +26,7 @@ qr('#newwin').addEventListener('click', function () {
   }, 200);
 });
 
-qr('#issuebtn').addEventListener('click', function () {
-  var w = window.open("https://github.com/painty/CSS-Used-ChromeExt/issues");
-});
+qr('#issuebtn').addEventListener('click', gotoGithubIssue);
 
 qr('#copy').addEventListener('click', function () {
   qr('#outp2').select();
@@ -43,6 +41,12 @@ qr("#pop").addEventListener("click", function (e) {
       })
     } else if (e.target.id == "refreshPage") {
       chrome.devtools.inspectedWindow.reload();
+    }else if (e.target.id == "issueSpan") {
+      gotoGithubIssue();
     }
   }
 });
+
+function gotoGithubIssue(){
+  var w = window.open("https://github.com/painty/CSS-Used-ChromeExt/issues");
+}

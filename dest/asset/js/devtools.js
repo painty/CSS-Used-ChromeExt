@@ -4,9 +4,11 @@ var outp1, outp2, input, pop, tips, sidebarvisible = false;
 var accessToFileURLs = true;
 
 var initialText = `
+For the first time installed/updated/allowedFileAccess:
 <li id="openCSSUsedSettings">Active the "Allow access to file URLs" for file:/// page</li>
 <li><span id="refreshPage">Refresh</span> the inspected page</li>
 <li>Reopen the Devtool or Select another elements on the left</li>
+If problem persists, please <span id="issueSpan">create an issue</span>.
 `;
 
 function showMessage(str) {
@@ -15,35 +17,54 @@ function showMessage(str) {
 }
 
 function isProtected(url) {
-  return url.match(/^https:\/\/chrome\.google\.com/) !== null
+  return url.match(/^(chrome|https:\/\/chrome\.google\.com\/webstore)/)!==null;
 }
 
 function evalGetc(cancel) {
   if (!cancel && !sidebarvisible) return;
   showMessage(initialText);
 
-  var arrFrameURL = [];
-  chrome.devtools.inspectedWindow.getResources(function (resources) {
-    for (var i = 0; i < resources.length; i++) {
-      if (resources[i].type === 'document' && resources[i].url.match(/^(https?:|file:\/)\/\//) !== null) {
-        arrFrameURL.push(resources[i].url);
+  chrome.tabs.query({
+    
+  }, function(results){
+    let inspectedTabUrl='';
+    results.forEach(function(ele){
+      if(ele.id===chrome.devtools.inspectedWindow.tabId){
+        inspectedTabUrl=ele.url;
       }
-    }
-    if(arrFrameURL.length===0){
-      showMessage('Cannot work on this page.')
+    });
+    if(isProtected(inspectedTabUrl)){
+      showMessage('This page is protected by Chrome.<br>Try another page.');
     }else{
-      arrFrameURL.forEach(function (ele) {
-        if (isProtected(ele)) {
-          showMessage('Chrome Webstore pages are protected.<br>Try another page.');
-        } else {
-          chrome.devtools.inspectedWindow.eval('getCssUsed(' + (cancel ? '' : '$0') + ')', {
-            frameURL: ele,
-            useContentScriptContext: true
-          });
+      let arrFrameURL = [];
+      chrome.devtools.inspectedWindow.getResources(function (resources) {
+        for (var i = 0; i < resources.length; i++) {
+          if (resources[i].type === 'document' && resources[i].url.match(/^(https?:|file:\/)\/\//) !== null) {
+            arrFrameURL.push(resources[i].url);
+          }
         }
-      })
+        if(arrFrameURL.length===0){
+          showMessage('Cannot work on this page.')
+        }else{
+          arrFrameURL.forEach(function (ele) {
+            chrome.devtools.inspectedWindow.eval('getCssUsed(' + (cancel ? '' : '$0') + ')', {
+              frameURL: ele,
+              useContentScriptContext: true
+            },function(result, isException){
+              if (isException){
+                // showMessage("isException:",isException);
+              }else{
+                // console.log(result);
+              }
+            });
+          })
+        }
+      });
     }
-  });
+  })
+  
+
+  
 }
 
 chrome.devtools.panels.elements.onSelectionChanged.addListener(function () {
@@ -55,7 +76,7 @@ chrome.devtools.network.onNavigated.addListener(function(){
   // console.log('onNavigated');
   // showMessage('New page')
   // evalGetc();
-  initialText=`on Navigated.<br>Select another dom on the left<br>to trigger the calulation`
+  initialText=`on Navigated.<br>Select another dom on the left <br>or<br>Reopen the Devtool`
 });
 
 chrome.devtools.panels.elements.createSidebarPane(

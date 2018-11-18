@@ -19,5 +19,5 @@ button{position:relative;font-size:12px;display:block;margin-right:10px;}
 form{font-size:12px;margin-right:10px;position:relative;display:block;}
 form button{margin:0;}
 .operate{position:relative;display:flex;clear:both;margin-left:10px;}
-#openCSSUsedSettings,#refreshPage{text-decoration:underline;cursor:pointer;color:blue;}
+#openCSSUsedSettings,#refreshPage,#issueSpan{text-decoration:underline;cursor:pointer;color:blue;}
 .havefileaccess #openCSSUsedSettings{display:none;}

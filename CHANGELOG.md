@@ -1,6 +1,7 @@
-**ver 2.3.0 | 18/11/2018**
+**ver 2.3.1 | 18/11/2018**
 
 1. More friendly prompt text for first use or error display.
+2. The add tabs permission is used to identify special urls. Such as chrome://newtab
 
 **ver 2.2.12 | 11/11/2018**
 
