@@ -6,6 +6,25 @@ Get all css rules used by the selected DOM and its children.
 
 Get it at the Chrome Web Store : [CSS Used >>](https://chrome.google.com/webstore/detail/css-used/cdopjfddjlonogibjahpnmjpoangjfff)
 
+## FAQ
+
+1. Permission to read my browsing history
+
+    See https://github.com/painty/CSS-Used-ChromeExt/wiki/Permission-to-read-my-browsing-history%3F
+
+1. Local preview not right
+
+    As for the CSS rule like `.wrap p{...}`, if only `<p>` is selected, the result `.wrap p{...}` may not apply directly to `<p>`.
+    Either changing this rule's selector to `p{...}` or giving the `<p>` a `.wrap` parent in the final HTML.
+
+1. Not all the CSS is got
+
+    The result is generated based on the CURRENT HTML DOM. If a div doesn't exist in the document unless a specific user interaction, the result may miss out the style rules for the newly born div.
+    
+1. Always says to fresh the page
+
+   First check whether it's Chrome Web Store pages, which is `https://chrome.google.com/webstore/....`, which won't allow content script injection. If it's a normal webpage , please create an issue.
+
 ## Overview
 
 Get all css rules used by the selected DOM and its children. Used to extrac only the used CSS. So the unused css will be left out.
@@ -19,15 +38,6 @@ If the selected DOM is the body, the result will be all the used css by the whol
 F12 open the Developer Tools, select the dom and active the "CSS Used" pannel. The used CSS rules of the Selected dom and its children's will be listed in the right textare.
 
 You can click "Preview" to see the selected part with clean style rules.
-
-## Known Limit
-
-1. As for the CSS rule like `.wrap p{...}`, if only `<p>` is selected, the result `.wrap p{...}` may not apply directly to `<p>`.
-
-    Either changing this rule's selector to `p{...}` or giving the `<p>` a `.wrap` parent in the final HTML.
-1. The result is generated based on the CURRENT HTML DOM. If a div doesn't exist in the document unless a specific user interaction, the result may miss out the style rules for the newly born div.
-
-1. Won't work on Chrome Web Store pages, which is `https://chrome.google.com/webstore/....`
 
 ## Changelog
 
