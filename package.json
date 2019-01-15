@@ -1,6 +1,6 @@
 {
   "name": "css-used-chrome-ext",
-  "version": "2.2.11",
+  "version": "2.3.3",
   "description": "A chrome extension to get all css rules used by the selected DOM and its children.",
   "main": "./src/main.js",
   "scripts": {
