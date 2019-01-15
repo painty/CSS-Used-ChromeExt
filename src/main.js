@@ -17,7 +17,7 @@ function getC($0) {
     clearTimeout(ele);
   });
   arrTimerOfTestingIfMatched = [];
-  
+
   if ($0 === null || typeof $0 === 'undefined' || typeof $0.nodeName === 'undefined') {
     return
   } else {
@@ -49,7 +49,7 @@ function getC($0) {
       return
     }
   }
-  
+
   chrome.runtime.sendMessage({
     status: "Preparing ..."
   });
