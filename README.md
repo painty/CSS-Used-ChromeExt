@@ -41,6 +41,9 @@ You can click "Preview" to see the selected part with clean style rules.
 
 ## Changelog
 
+Go to [releases](releases)
+
+For older version infomation:
 Go to the [Changelog page](CHANGELOG.md)
 
 ## Dev
