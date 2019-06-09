@@ -41,7 +41,7 @@ You can click "Preview" to see the selected part with clean style rules.
 
 ## Changelog
 
-Go to [releases](releases)
+Go to [releases](https://github.com/painty/CSS-Used-ChromeExt/releases)
 
 For older version infomation:
 Go to the [Changelog page](CHANGELOG.md)
