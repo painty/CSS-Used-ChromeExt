@@ -1,3 +1,8 @@
+**ver 2.4.0 | 06/09/2019**
+
+1. Code optimization: 10x speed up!
+2. Build tool: switch browserify to parcel
+
 **ver 2.3.2 | 18/11/2018**
 
 1. More friendly prompt text for first use or error display.

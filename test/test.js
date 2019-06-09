@@ -6,7 +6,7 @@ const entryFiles = Path.join(__dirname, './index.js');
 const options = {
   outDir: './test',
   outFile: 'index.build.js',
-  scopeHoist: true, // Turn on experimental scope hoisting/tree shaking flag, for smaller production bundles
+  // sourceMaps: true,
   hmrPort: 12345, // hmr socket port
 };
 

@@ -1,3 +1,23 @@
+let wSocket = new WebSocket('ws://' + 'localhost' + ':' + '12345' + '');
+
+wSocket.onopen = function() {
+  // console.log("Primary Socket Connected.");
+};
+
+wSocket.onmessage = function(evt) {
+  // console.log(evt);
+  location.reload();
+}
+
+wSocket.onclose = function() {
+  console.log("Primary Socket Closed.");
+  wSocket = null;
+};
+
+wSocket.onerror = function(evt) {
+  console.error(evt);
+}
+
 import expected from './expected.js'
 import getCssUsed from '../src/main.js'
 
@@ -18,24 +38,5 @@ window.chrome = {
     }
   }
 }
+
 getCssUsed(document.documentElement);
-
-let wSocket = new WebSocket('ws://' + 'localhost' + ':' + '12345' + '');
-
-wSocket.onopen = function() {
-  // console.log("Primary Socket Connected.");
-};
-
-wSocket.onmessage = function(evt) {
-  // console.log(evt);
-  location.reload();
-}
-
-wSocket.onclose = function() {
-  console.log("Primary Socket Closed.");
-  wSocket = null;
-};
-
-wSocket.onerror = function(evt) {
-  console.error(evt);
-}

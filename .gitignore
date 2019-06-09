@@ -48,4 +48,5 @@ node_modules
 # built
 dest/asset/js/content.js
 test/index.build.js
+test/index.build.js.map
 .cache

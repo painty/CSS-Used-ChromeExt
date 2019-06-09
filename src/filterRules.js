@@ -5,12 +5,17 @@
 // each testing is wrapped by a settimeout timmer to make it async
 // because the testing can be a long time if too many.
 
-var debugMode = false;
+var debugMode = process.env.NODE_ENV!=='production';
 const cssHelper = require('./cssHelper');
 
 // may match accoding to interaction
-const pseudocls = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
-  pseudoele = '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection|resizer|scrollbar(-(button|thumb|corner|track(-piece)?))?))|-ms-(clear|reveal|expand)|-moz-(focusring)|-webkit-(details-marker)|after|before|first-letter|first-line';
+const PseudoClass = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
+  PseudoElement = '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection|resizer|scrollbar(-(button|thumb|corner|track(-piece)?))?))|-ms-(clear|reveal|expand)|-moz-(focusring)|-webkit-(details-marker)|after|before|first-letter|first-line',
+  MaxPossiblePseudoLength=30,
+  REG0=new RegExp('^(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+$', ''),
+  REG1=new RegExp('( |^)(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+( |$)', 'ig'),
+  REG2=new RegExp('\\((:(' + PseudoClass + ')|::?(' + PseudoElement + '))+\\)', 'ig'),
+  REG3=new RegExp('(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+', 'ig');
 
 function filterRules($0, objCss, taskTimerRecord) {
   var promises = [];
@@ -29,7 +34,7 @@ function filterRules($0, objCss, taskTimerRecord) {
     objCss.normRule.forEach(function (rule, idx) {
       promises.push(new Promise(function (res, rej) {
         var timer = setTimeout(function () {
-          if (idx % 100 === 0) {
+          if (idx % 1000 === 0) {
             chrome.runtime.sendMessage({
               dom: domlist.length - 1,
               rule: objCss.normRule.length,
@@ -53,21 +58,21 @@ function filterRules($0, objCss, taskTimerRecord) {
               // but wont apply now 
               // eg. :active{xxx}
               // only works when clicked on and actived
-              if (sel.match(new RegExp('^(:(' + pseudocls + ')|::?(' + pseudoele + '))+$', ''))) {
+              if (sel.length<MaxPossiblePseudoLength && sel.match(REG0)){
                 selMatched.push(sel);
               } else {
                 let count = [];
-                let replacedSel = sel.replace(new RegExp('( |^)(:(' + pseudocls + ')|::?(' + pseudoele + '))+( |$)', 'ig'), ' * ');
-                replacedSel = replacedSel.replace(new RegExp('\\((:(' + pseudocls + ')|::?(' + pseudoele + '))+\\)', 'ig'), '(*)');
-                replacedSel = replacedSel.replace(new RegExp('(:(' + pseudocls + ')|::?(' + pseudoele + '))+', 'ig'), '');
-                try {
-                  if ($0.matches(sel) || $0.querySelectorAll(sel).length !== 0) {
-                    selMatched.push(sel);
-                  }
-                } catch (e) {
-                  count.push(sel);
-                  count.push(e);
-                }
+                let replacedSel = sel.replace(REG1, ' * ')
+                  .replace(REG2, '(*)')
+                  .replace(REG3, '');
+                // try {
+                //   if ($0.matches(sel) || $0.querySelectorAll(sel).length !== 0) {
+                //     selMatched.push(sel);
+                //   }
+                // } catch (e) {
+                //   count.push(sel);
+                //   count.push(e);
+                // }
                 try {
                   if ($0.matches(replacedSel) || $0.querySelectorAll(replacedSel).length !== 0) {
                     selMatched.push(sel);
