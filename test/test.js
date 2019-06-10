@@ -6,7 +6,7 @@ const entryFiles = Path.join(__dirname, './index.js');
 const options = {
   outDir: './test',
   outFile: 'index.build.js',
-  // sourceMaps: true,
+  sourceMaps: false,
   hmrPort: 12345, // hmr socket port
 };
 
