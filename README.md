@@ -41,11 +41,13 @@ You can click "Preview" to see the selected part with clean style rules.
 
 ## Changelog
 
+Go to [releases](https://github.com/painty/CSS-Used-ChromeExt/releases)
+
+For older version infomation:
 Go to the [Changelog page](CHANGELOG.md)
 
 ## Dev
 
  1. `npm install` to install all the dependencies
- 2. `npm run dev` watch & gernerate an unminified version of `content.js` for debug
- 3. `npm run build` gernerate a minified version of `content.js`
- 3. `npm run test` will start a local http://127.0.0.1:8080 server. Visiting the test page and check the console
+ 2. `npm run build` gernerate `/dest/asset/js/content.js`. Drag the `dest` folder to `chrome://extensions/`, remember to turn on the dev mode on the top right of the page.
+ 3. `npm test` will start a local `http://localhost:1234` server. Visiting the test page and check the console.

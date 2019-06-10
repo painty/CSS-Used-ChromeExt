@@ -17,25 +17,10 @@
   <i>iiiii</i>
   <p class="S_spetxt">.S_spetxt</p>
   <iframe src="iframe.html" frameborder="0"></iframe>
-  <p>SEE the Console.</p>
-  <script src="../dest/asset/js/content.js"></script>
-  <script src="./expected.js"></script>
-  <script>
-    var chrome = {
-      runtime: {
-        sendMessage: function (obj) {
-          if(obj.css){
-            if(obj.css===expected){
-              console.log('Test Passed');
-            }else{
-              console.log('Not the Same As Expected',obj);
-            }
-          }
-        }
-      }
-    }
-    getCssUsed(document.documentElement);
-  </script>
+  <p>Open browser's Console to check test result.</p>
+  <p>Open browser's Console to check test result.</p>
+  <p>Open browser's Console to check test result.</p>
+  <script src="./index.build.js"></script>
 </body>
 
 </html>
