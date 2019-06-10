@@ -31,6 +31,10 @@ qr('#issuebtn').addEventListener('click', gotoGithubIssue);
 qr('#copy').addEventListener('click', function () {
   qr('#outp2').select();
   document.execCommand('copy');
+  this.innerText='Copied';
+  setTimeout(() => {
+    this.innerText='Copy';
+  }, 1500);
 });
 
 qr("#pop").addEventListener("click", function (e) {

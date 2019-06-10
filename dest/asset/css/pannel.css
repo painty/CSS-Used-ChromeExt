@@ -33,5 +33,8 @@ form button{/* margin:0; */}
 .theme-dark ::-webkit-scrollbar-thumb:hover{cursor:default;}
 .theme-dark ::-webkit-scrollbar-track{background:#242424;border-left:1px solid #2b2b2b;}
 .theme-dark button{border-color:rgba(230,230,230,0.2);color:#cccccc;background-color:rgb(36,36,36);}
+.theme-dark button:hover{background-color:#333333;box-shadow:rgba(230, 230, 230, 0.1) 0px 1px 2px;}
 #copy{background-color:#1a73e8;border:none;color:#fff;}
 #copy:hover{background-color:#3b86e8;}
+.theme-dark #copy{background-color:#0e639c;border:none;color:#fff;}
+.theme-dark #copy:hover{background-color:#1177bb;}
