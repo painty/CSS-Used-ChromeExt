@@ -1,8 +1,9 @@
 body,html{height:100%;padding:0;margin:0;}
 body,textarea{font-family:Consolas,'Lucida Console',monospace;font-size:12px;}
-body{box-sizing:border-box;padding:10px;background:#eee;}
+::selection{background:#cfe8fc;}
+body{box-sizing:border-box;padding:10px;background:inherit;}
 .outp{width:50%;height:100%;padding:20px 10px 40px;box-sizing:border-box;position:relative;margin-bottom:-30px;}
-textarea{width:100%;height:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:5px;resize:none;overflow:auto;}
+textarea{width:100%;height:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;resize:none;overflow:auto;}
 .outp1{float:left;display:none;}
 .outp1:before,.outp2:before{position:absolute;top:0px;}
 .outp1:before{content:"HTML";}
@@ -21,3 +22,12 @@ form button{margin:0;}
 .operate{position:relative;display:flex;clear:both;margin-left:10px;}
 #openCSSUsedSettings,#refreshPage,#issueSpan{text-decoration:underline;cursor:pointer;color:blue;}
 .havefileaccess #openCSSUsedSettings{display:none;}
+.theme-dark body{color:rgb(165, 165, 165);}
+.theme-dark textarea{background-color:#242424;border-color:#525252;color:rgb(217, 217, 217);}
+.theme-dark textarea:focus{outline:none;}
+.theme-dark ::selection{background-color:#999;}
+.theme-dark .pop{color:#000;background:rgba(255, 255, 255, 0.55);}
+.theme-dark ::-webkit-scrollbar{background:#333;width:14px;cursor:pointer;}
+.theme-dark ::-webkit-scrollbar-thumb{background:#333333;border:1px solid #414141;}
+.theme-dark ::-webkit-scrollbar-thumb:hover{cursor:default;}
+.theme-dark ::-webkit-scrollbar-track{background:#242424;border-left:1px solid #2b2b2b;}
