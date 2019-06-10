@@ -50,3 +50,5 @@ qr("#pop").addEventListener("click", function (e) {
 function gotoGithubIssue(){
   var w = window.open("https://github.com/painty/CSS-Used-ChromeExt/issues");
 }
+
+document.documentElement.className+=(' theme-'+chrome.devtools.panels.themeName);
