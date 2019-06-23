@@ -1,11 +1,11 @@
 function expected(port){
   return `/*! CSS Used from: http://localhost:${port}/index.css */
-/*! @import http://localhost:${port}/common.cssscreen, projection */
+/*! @import http://localhost:${port}/common.css screen, projection */
 @media screen, projection{
 body{background:#ccc;}
 }
 /*! end @import */
-/*! @import http://localhost:${port}/landscape.cssscreen and (orientation:portrait) */
+/*! @import http://localhost:${port}/landscape.css screen and (orientation:portrait) */
 @media screen and (orientation:portrait){
 body{background:#aaa;}
 }

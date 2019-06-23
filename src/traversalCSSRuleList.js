@@ -84,7 +84,7 @@ function traversalCSSRuleList(doc, externalCssCache, cssNodeArr) {
                 })
                 .then(function (obj) {
                   if (obj.normRule.length > 0) {
-                    _objCss.normRule.push('/*! @import ' + href + media + ' */');
+                    _objCss.normRule.push(['/*! @import',href,media,'*/'].join(' ').replace(/ {2,}/g,' '));
                     media.length && _objCss.normRule.push('\n@media ' + media + '{');
                     cssHelper.mergeobjCss(_objCss, obj);
                     media.length && _objCss.normRule.push('}');
