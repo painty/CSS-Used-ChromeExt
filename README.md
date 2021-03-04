@@ -49,5 +49,5 @@ Go to the [Changelog page](CHANGELOG.md)
 ## Dev
 
  1. `npm install` to install all the dependencies
- 2. `npm run build` gernerate `/dest/asset/js/content.js`. Drag the `dest` folder to `chrome://extensions/`, remember to turn on the dev mode on the top right of the page.
+ 2. `npm run build` gernerate `/build/asset/js/content.js`. Drag the `build` folder to `chrome://extensions/`, remember to turn on the dev mode on the top right of the page.
  3. `npm test` will start a local `http://localhost:1234` server. Visiting the test page and check the console.

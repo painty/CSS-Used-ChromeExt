@@ -46,5 +46,5 @@ Temporary Items
 node_modules
 
 # built
-dest/asset/js/content.js
+build/asset/js/content.js
 .cache

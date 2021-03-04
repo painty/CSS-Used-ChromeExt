@@ -6,7 +6,7 @@ module.exports = {
   mode: 'production',
   output: {
     filename: 'content.js',
-    path: path.resolve(__dirname, 'dest/asset/js'),
+    path: path.resolve(__dirname, 'build/asset/js'),
     library: 'getCssUsed'
   },
   optimization: {
