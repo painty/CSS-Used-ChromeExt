@@ -1,3 +1,7 @@
+**ver 2.4.3 | 04/03/2021**
+
+1. Fix. Send to CodePen may not work. [#18](https://github.com/painty/CSS-Used-ChromeExt/issues/38)
+
 **ver 2.3.2 | 18/11/2018**
 
 1. More friendly prompt text for first use or error display.

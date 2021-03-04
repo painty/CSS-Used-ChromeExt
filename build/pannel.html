@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
   <link rel="stylesheet" type="text/css" href="asset/css/pannel.css">
 </head>
 
@@ -14,11 +15,11 @@
     <textarea id="outp2"></textarea>
   </div>
   <div class="operate">
-    <button id="copy">Copy</button>
-    <button id="newwin">Preview</button>
+    <button id="copy" class="btn">Copy</button>
+    <button id="newwin" class="btn">Preview</button>
     <form action="https://codepen.io/pen/define" method="POST" target="_blank">
       <input type="hidden" name="data" value='{"title": "New Pen!", "html": "<div>Hello, World!</div>"}'>
-      <button title="Send snippet to CodePen">CodePen</button>
+      <input title="Send snippet to CodePen" type="submit" value="CodePen" class="btn">
     </form>
   </div>
 

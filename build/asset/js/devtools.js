@@ -130,7 +130,11 @@ backgroundPageConnection.onMessage.addListener(function (message, sender, sendRe
     outp1.value = message.html;
     outp2.value = message.css;
     outp2.select();
-    input.value = JSON.stringify(message);
+    input.value = JSON.stringify({
+      title: 'New Pen via CSS-Used',
+      html:message.html,
+      css:message.css
+    });
     pop.style.display = 'none';
     // SideBar.setExpression(message.result);
     // document.getElementById('outp').value=message.result;
