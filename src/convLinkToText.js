@@ -2,6 +2,20 @@
 const isutf8 = require('is-utf8');
 const convUrlToAbs = require('./convUrlToAbs');
 
+function checkPermission(){
+  return new Promise((resolve, reject)=>{
+    if(chrome.storage){
+      chrome.storage.sync.get({
+        convUrlToAbsolute: true
+      }, function(items) {
+        resolve(items.convUrlToAbsolute);
+      });
+    }else{
+      resolve(true);
+    }
+  })
+}
+
 function makeRequest(url) {
   var result = {};
   result.url = url;
@@ -20,15 +34,21 @@ function makeRequest(url) {
         } else {
           decoder = new TextDecoder('gbk');
         };
-        result.cssraw = decoder.decode(xhr.response)
-          .replace(/url\((['"]?)(.*?)\1\)/g, function (a, p1, p2) {
-            return `url(${p1}${convUrlToAbs(url, p2)}${p1})`;
+
+        result.cssraw = decoder.decode(xhr.response);
+
+        checkPermission().then((willConvUrlToAbs)=>{
+          if(willConvUrlToAbs){
+            result.cssraw=result.cssraw.replace(/url\((['"]?)(.*?)\1\)/g, function (a, p1, p2) {
+              return `url(${p1}${convUrlToAbs(url, p2)}${p1})`;
+            });
+          }
+          result.status = this.status;
+          result.statusText = this.statusText;
+          resolve(result);
+          chrome.runtime.sendMessage({
+            status: 'Parsing : ' + url
           });
-        result.status = this.status;
-        result.statusText = this.statusText;
-        resolve(result);
-        chrome.runtime.sendMessage({
-          status: 'Parsing : ' + url
         });
       } else {
         result.cssraw = "";
@@ -38,7 +58,7 @@ function makeRequest(url) {
       }
     };
     xhr.onerror = function (e) {
-      console.log('Fail to get: ' + url);
+      console.log('CSS-Used: Fail to get: ' + url);
       result.cssraw = "";
       result.status = this.status;
       result.statusText = this.statusText;

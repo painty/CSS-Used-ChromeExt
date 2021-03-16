@@ -1,6 +1,11 @@
+**ver 2.5.0 | 15/03/2021**
+
+1. New. Option page.
+2. New. Option to preserve relative URLs. [#31](https://github.com/painty/CSS-Used-ChromeExt/issues/31)
+
 **ver 2.4.3 | 04/03/2021**
 
-1. Fix. Send to CodePen may not work. [#18](https://github.com/painty/CSS-Used-ChromeExt/issues/38)
+1. Fix. Send to CodePen may not work. [#38](https://github.com/painty/CSS-Used-ChromeExt/issues/38)
 
 **ver 2.3.2 | 18/11/2018**
 

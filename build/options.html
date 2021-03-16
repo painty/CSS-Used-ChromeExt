@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Options</title>
+</head>
+<style>
+  h1{border-bottom: 1px solid #ccc;font-weight: normal;font-size: 24px;padding-bottom: 15px;margin-bottom: 15px;}
+.form-item{border-bottom: 1px solid #ccc;padding-bottom: 15px;margin-bottom: 15px;}
+.form-item-content{font-size: 16px;}
+.form-item-tips{font-size: 12px;color:#999;}
+.form-item-tips code{background: #ccc;color:#333;border-radius: 3px;padding: 3px;}
+.form-item__checkbox .form-item-tips{padding-left: 25px;}
+</style>
+<body>
+
+  <h1>CSS Used Options</h1>
+
+  <div class="form-item form-item__checkbox">
+    <div class="form-item-content">
+      <label>
+        <input type="checkbox" id="convUrlToAbs" checked>
+        Convert url to absolute path in css rules.
+      </label>
+    </div>
+    <div class="form-item-tips">* eg. <code>background: url(./bg.jpg)</code> -> <code>background: url(https://example.com/assets/bg.jpg)</code></div>
+    <div class="form-item-tips">* Without absolute url, the Preview/CodePen may not work, for the protocols and domains are different.</div>
+    <div class="form-item-tips">* The inspected page need a refresh for changes to take effect.</div>
+  </div>
+
+  <div id="status"></div>
+  <button id="save">Save</button>
+
+  <script src="asset/js/options.js"></script>
+</body>
+</html>

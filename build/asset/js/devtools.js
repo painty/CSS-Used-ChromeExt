@@ -7,12 +7,18 @@ var initialText = `
 For the first time installed/updated/allowedFileAccess:
 <li id="openCSSUsedSettings">Active the "Allow access to file URLs" for file:/// page</li>
 <li><span id="refreshPage">Refresh</span> the inspected page</li>
-<li>Reopen the Devtool or Select another elements on the left</li>
+or
+<li>Restart Chrome</li>
 If problem persists, please <span id="issueSpan">create an issue</span>.
 `;
 
 function showMessage(str) {
-  tips.innerHTML = str;
+  if(str===initialText) {
+    tips.innerHTML = str;
+  }else{
+    // only <br> is allowed
+    tips.innerText = str.replace(/<br>/g,'\n');
+  }
   pop.style.display = 'block';
 }
 
@@ -76,7 +82,7 @@ chrome.devtools.network.onNavigated.addListener(function(){
   // console.log('onNavigated');
   // showMessage('New page')
   // evalGetc();
-  initialText=`on Navigated.<br>Select another dom on the left <br>or<br>Reopen the Devtool`
+  initialText=`on Navigated.<li>Select another dom on the left </li>or<li>Reopen the Devtool</li>`
 });
 
 chrome.devtools.panels.elements.createSidebarPane(
