@@ -27,7 +27,7 @@
     "is-utf8": "^0.2.1",
     "postcss": "^7.0.17",
     "postcss-safe-parser": "^4.0.1",
-    "urijs": "^1.19.1"
+    "urijs": "^1.19.9"
   },
   "devDependencies": {
     "terser-webpack-plugin": "^1.3.0",
