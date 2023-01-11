@@ -16,7 +16,7 @@ If the selected DOM is the body, the result will be all the used css by the whol
 
 ![CSS-Used](https://user-images.githubusercontent.com/5387771/47267284-41b36a80-d574-11e8-9b83-c7896d428827.jpg)
 
-F12 open the Developer Tools, select the dom and active the "CSS Used" pannel. The used CSS rules of the Selected dom and its children's will be listed in the right textare.
+F12 open the Developer Tools, select the dom and active the "CSS Used" panel. The used CSS rules of the Selected dom and its children's will be listed in the right textare.
 
 You can click "Preview" to see the selected part with clean style rules.
 

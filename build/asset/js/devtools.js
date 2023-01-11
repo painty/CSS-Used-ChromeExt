@@ -97,7 +97,7 @@ chrome.devtools.panels.elements.createSidebarPane(
   'CSS Used',
   function (sidebar) {
     sidebar.setHeight('calc(100vh - 48px)')
-    sidebar.setPage('pannel.html')
+    sidebar.setPage('panel.html')
     sidebar.onShown.addListener(function (win) {
       console.log('onShown')
       panelVisible = true
@@ -121,6 +121,7 @@ chrome.devtools.panels.elements.createSidebarPane(
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Messages from content scripts should have sender.tab set
+  // Messages from panel scripts should have sender.tab set
   // console.log('sender', sender)
   // console.log('message', message)
   console.log('sender,message', sender, message)
