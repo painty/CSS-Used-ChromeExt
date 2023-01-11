@@ -19,13 +19,16 @@ function checkPermission() {
   });
 }
 
-function makeRequest(url: string) {
-  var result: {
-    cssraw?: any;
-    status?: number;
-    statusText?: string;
-    url?: string;
-  } = {};
+interface customCssObj {
+  cssraw?: string;
+  status?: number;
+  /** returned from xhr, only for debug */
+  statusText?: string;
+  url?: string;
+}
+
+function makeRequest(url: string): Promise<customCssObj> {
+  var result: customCssObj = {};
   result.url = url;
   chrome.runtime.sendMessage({
     status: "Getting : " + url,
@@ -39,7 +42,7 @@ function makeRequest(url: string) {
         (this.status >= 200 && this.status < 300) ||
         url.match(/^file:\/\/\//) !== null
       ) {
-        var decoder;
+        var decoder: TextDecoder;
         if (isutf8(new Uint8Array(xhr.response))) {
           decoder = new TextDecoder("UTF-8");
         } else {
@@ -52,7 +55,7 @@ function makeRequest(url: string) {
           if (willConvUrlToAbs) {
             result.cssraw = result.cssraw.replace(
               /url\((['"]?)(.*?)\1\)/g,
-              function (_a, p1, p2) {
+              function (_a: string, p1: string, p2: string) {
                 return `url(${p1}${convUrlToAbs(url, p2)}${p1})`;
               }
             );
@@ -82,7 +85,7 @@ function makeRequest(url: string) {
   });
 }
 
-function convLinkToText(links) {
+function convLinkToText(links: string[]): Promise<customCssObj[]> {
   var promises = [];
   return new Promise(function (resolve, reject) {
     if (links.length === 0) {
@@ -92,7 +95,7 @@ function convLinkToText(links) {
         promises.push(makeRequest(links[i]));
       }
       Promise.all(promises)
-        .then(function (result) {
+        .then((result: customCssObj[]) => {
           resolve(result);
         })
         .catch(function (err) {

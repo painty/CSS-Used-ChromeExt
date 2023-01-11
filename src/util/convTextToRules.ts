@@ -1,18 +1,24 @@
-import postcss from 'postcss';
-import safe from 'postcss-safe-parser';
+import postcss from "postcss";
+import safe from "postcss-safe-parser";
 
-function convTextToRules(styleContent, href) {
-  return new Promise((resolve, reject) => {
-    postcss().process(styleContent, {
-      from: undefined,
-      parser: safe
-    }).then(result => {
-      if (href) {
-        result.root.nodes.href = href;
-      };
-      resolve(result.root.nodes);
-    });
+async function convTextToRules(styleContent: string, href?: string) {
+  const processor = postcss();
+  // console.log('processor',processor);
+  const result = await processor.process(styleContent, {
+    from: href || "cssFromUnknown",
+    parser: safe,
   });
+  type cssNodeObj = {
+    nodes: typeof result.root.nodes;
+    href?: string;
+    parentHref?: string;
+    media?: MediaList;
+  };
+  const returnObj: cssNodeObj = {
+    nodes: result.root.nodes,
+    href,
+  };
+  return returnObj;
 }
 
 export default convTextToRules;

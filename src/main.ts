@@ -5,16 +5,19 @@ import convTextToRules from "./util/convTextToRules";
 import postTideCss from "./util/postTideCss";
 import generateRulesAll from "./util/generateRulesAll";
 
-var externalCssCache = {};
+type cssNodeObj = Awaited<ReturnType<typeof convTextToRules>>;
+
+const externalCssCache : {[index : string]: cssNodeObj } = {};
 //to store timers of testing if a html element matches a rule selector.
-var arrTimerOfTestingIfMatched = [];
-var doc = document;
+const arrTimerOfTestingIfMatched :ReturnType<typeof setTimeout>[] = [];
+let doc = document;
 
 function getC($0: HTMLElement) {
   arrTimerOfTestingIfMatched.forEach(function (ele) {
     clearTimeout(ele);
   });
-  arrTimerOfTestingIfMatched = [];
+  // reset to empty
+  arrTimerOfTestingIfMatched.length=0;
 
   if (
     $0 === null ||
@@ -36,7 +39,7 @@ function getC($0: HTMLElement) {
     }
   }
 
-  var isInSameOrigin = true;
+  let isInSameOrigin = true;
   try {
     $0.ownerDocument.defaultView.parent.document;
   } catch (e) {
@@ -59,10 +62,10 @@ function getC($0: HTMLElement) {
   // console.log('NOT return,begin');
   doc = $0.ownerDocument;
 
-  var links = [];
+  var links: string[] = [];
   Array.prototype.forEach.call(
     $0.ownerDocument.querySelectorAll('link[rel~="stylesheet"][href]'),
-    function (ele) {
+    function (ele: HTMLLinkElement) {
       // if href==='' , ele.getAttribute('href') !== ele.href
       if (
         ele.getAttribute("href") &&
@@ -73,14 +76,15 @@ function getC($0: HTMLElement) {
     }
   );
   convLinkToText(links)
-    .then(function (result) {
-      var promises = [];
+    .then(async (result) => {
+      var promises: cssNodeObj[] = [];
       for (var i = 0; i < result.length; i++) {
         let ele = result[i],
           idx = i;
-        promises.push(convTextToRules(ele.cssraw, links[idx]));
+        const rulesObj = await convTextToRules(ele.cssraw, links[idx]);
+        promises.push(rulesObj);
       }
-      return Promise.all(promises);
+      return promises;
     })
     .catch(function (err) {
       chrome.runtime.sendMessage({
@@ -88,9 +92,11 @@ function getC($0: HTMLElement) {
       });
     })
     .then(function (result) {
-      result.forEach(function (ele) {
-        externalCssCache[ele.href] = ele;
-      });
+      if(Array.isArray(result)){
+        result.forEach(function (rulesObj) {
+          externalCssCache[rulesObj.href] = rulesObj;
+        });
+      }
     })
     .then(function () {
       return generateRulesAll(doc, externalCssCache);
