@@ -120,60 +120,27 @@ chrome.devtools.panels.elements.createSidebarPane(
 )
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Messages from content scripts should have sender.tab set
-  // Messages from panel scripts should have sender.tab set
-  // console.log('sender', sender)
-  // console.log('message', message)
-  console.log('sender,message', sender, message)
-  if (message.action == 'getRecourceContent') {
-    chrome.devtools.inspectedWindow.getResources((resources) => {
-      // console.log('resources', resources);
-      const resourceMatched = resources.find((r) => r.url === message.url)
-      resourceMatched.getContent((content, encoding) => {
-        // https://developer.chrome.com/docs/extensions/reference/devtools_inspectedWindow/#method-getResources
-        // encoding:Currently, only base64 is supported.
-        // console.log(resourceMatched, encoding, content.length);
-        sendResponse({
-          url: message.url,
-          content,
+  // console.log('sender,message', sender, message)
+  if (message.tab) {
+    // Messages from content scripts should have sender.tab set
+    if (message.action == 'getRecourceContent') {
+      chrome.devtools.inspectedWindow.getResources((resources) => {
+        // console.log('resources', resources);
+        const resourceMatched = resources.find((r) => r.url === message.url)
+        resourceMatched.getContent((content, encoding) => {
+          // https://developer.chrome.com/docs/extensions/reference/devtools_inspectedWindow/#method-getResources
+          // encoding:Currently, only base64 is supported.
+          // console.log(resourceMatched, encoding, content.length);
+          sendResponse({
+            url: message.url,
+            content,
+          })
         })
       })
-    })
-    // https://stackoverflow.com/questions/44056271/chrome-runtime-onmessage-response-with-async-await
-    return true
-  } else if (message.action === 'openCSSUsedSettings') {
-    chrome.tabs.create({
-      url: 'chrome://extensions/?id=' + chrome.runtime.id,
-    })
-  } else if (message.info !== undefined) {
-    if (message.info === 'fileURLsNotAllowed') {
-      accessToFileURLs = false
-    } else {
-      showMessage(JSON.stringify(message.info))
+      // https://stackoverflow.com/questions/44056271/chrome-runtime-onmessage-response-with-async-await
+      return true
     }
-  } else if (message.err !== undefined) {
-    showMessage('ERROR:' + message.err)
-  } else if (message.status !== undefined) {
-    showMessage(message.status)
-  } else if (message.css === undefined) {
-    showMessage(
-      `The selected dom has ${message.dom}${
-        message.dom > 0 ? ' children' : ' child'
-      }.<br>Page rules are about ${message.rule}.<br>Traversing the ${
-        message.rulenow
-      }th rule...`
-    )
   } else {
-    outp1.value = message.html
-    outp2.value = message.css
-    outp2.select()
-    input.value = JSON.stringify({
-      title: 'New Pen via CSS-Used',
-      html: message.html,
-      css: message.css,
-    })
-    pop.style.display = 'none'
-    // SideBar.setExpression(message.result);
-    // document.getElementById('outp').value=message.result;
+    // Messages from panel scripts
   }
 })
