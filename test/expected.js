@@ -1,16 +1,16 @@
 function expected(port){
-  return `/*! CSS Used from: http://localhost:${port}/index.css */
-/*! @import http://localhost:${port}/common.css screen, projection */
+  return `/*! CSS Used from: http://localhost:${port}/test/index.css */
+/*! @import http://localhost:${port}/test/common.css screen, projection */
 @media screen, projection{
 body{background:#ccc;}
 }
 /*! end @import */
-/*! @import http://localhost:${port}/landscape.css screen and (orientation:portrait) */
+/*! @import http://localhost:${port}/test/landscape.css screen and (orientation:portrait) */
 @media screen and (orientation:portrait){
 body{background:#aaa;}
 }
 /*! end @import */
-/*! @import http://localhost:${port}/skin.css */
+/*! @import http://localhost:${port}/test/skin.css */
 .S_spetxt{color:#fa7d3c;}
 body{background-color:#b4d66b;background-image:none;}
 body{color:#333;text-decoration:none;}
@@ -18,7 +18,7 @@ a{color:#76a513;}
 /*! end @import */
 :AFTER{content:'after';background:#38c;}
 html{height:100%;}
-A{background:url(http://localhost:${port}/logo.jpg);background-size:100%;animation:teatnamekey;}
+A{background:url(http://localhost:${port}/test/logo.jpg);background-size:100%;animation:teatnamekey;}
 @media screen and (min-width:500px){
 a{width:16.666%;}
 }
@@ -31,7 +31,7 @@ body{font-family:"WBswficon";}
 @media print{
 i{font-size:10pt;}
 }
-/*! CSS Used from: http://localhost:${port}/font.css */
+/*! CSS Used from: http://localhost:${port}/test/font.css */
 i{font-family:'Cutive Mono';}
 @media only screen and (max-width:480px){
 b{font-size:20px;}

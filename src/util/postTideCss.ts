@@ -56,4 +56,4 @@ function fix(s) {
   return arr.join('\n').replace(/(['"']?)微软雅黑\1/, '"Microsoft Yahei"'); //.replace(/(['"']?)宋体\1/,' simsun ');
 }
 
-module.exports = fix
+export default fix

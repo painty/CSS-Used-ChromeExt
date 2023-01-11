@@ -1,7 +1,7 @@
-const cssHelper = require('./cssHelper');
-const convUrlToAbs = require('./convUrlToAbs');
-const convLinkToText = require('./convLinkToText');
-const convTextToRules = require('./convTextToRules');
+import cssHelper from './cssHelper';
+import convUrlToAbs from './convUrlToAbs';
+import convLinkToText from './convLinkToText';
+import convTextToRules from './convTextToRules';
 
 function traversalCSSRuleList(doc, externalCssCache, cssNodeArr) {
   var promises = [];
@@ -122,4 +122,4 @@ function traversalCSSRuleList(doc, externalCssCache, cssNodeArr) {
   });
 }
 
-module.exports = traversalCSSRuleList;
+export default traversalCSSRuleList;

@@ -2,9 +2,10 @@
   "name": "css-used-chrome-ext",
   "version": "2.5.0",
   "description": "A chrome extension to get all css rules used by the selected DOM and its children.",
-  "main": "./src/main.js",
   "scripts": {
-    "build": "webpack",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "test": "webpack-dev-server --open --config ./test/webpack.config.test.js"
   },
   "repository": {
@@ -25,14 +26,13 @@
   "homepage": "https://github.com/painty/CSS-Used-ChromeExt#readme",
   "dependencies": {
     "is-utf8": "^0.2.1",
-    "postcss": "^7.0.17",
-    "postcss-safe-parser": "^4.0.1",
-    "urijs": "^1.19.1"
+    "postcss": "^8.4.21",
+    "postcss-safe-parser": "^6.0.0"
   },
   "devDependencies": {
-    "terser-webpack-plugin": "^1.3.0",
-    "webpack": "^4.35.0",
-    "webpack-cli": "^3.3.4",
-    "webpack-dev-server": "^3.7.2"
+    "@types/chrome": "^0.0.206",
+    "typescript": "^4.9.4",
+    "vite": "^4.0.4",
+    "vite-plugin-environment": "^1.1.3"
   }
 }

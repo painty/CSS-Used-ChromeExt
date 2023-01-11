@@ -1,5 +1,5 @@
 import expected from './expected.js'
-import getCssUsed from '../src/main.js'
+import getCssUsed from '../src/main.ts'
 
 window.chrome = {
   runtime: {

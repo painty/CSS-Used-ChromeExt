@@ -1,5 +1,5 @@
-const postcss = require('postcss');
-const safe = require('postcss-safe-parser');
+import postcss from 'postcss';
+import safe from 'postcss-safe-parser';
 
 function convTextToRules(styleContent, href) {
   return new Promise((resolve, reject) => {
@@ -15,4 +15,4 @@ function convTextToRules(styleContent, href) {
   });
 }
 
-module.exports = convTextToRules;
+export default convTextToRules;

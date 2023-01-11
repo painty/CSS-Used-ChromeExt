@@ -48,3 +48,4 @@ node_modules
 # built
 build/asset/js/content.js
 .cache
+.vscode/launch.json

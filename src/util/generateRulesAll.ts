@@ -1,7 +1,7 @@
-const traversalCSSRuleList = require('./traversalCSSRuleList');
-const convTextToRules = require('./convTextToRules');
-const cssHelper = require('./cssHelper');
-const convUrlToAbs = require('./convUrlToAbs');
+import traversalCSSRuleList from './traversalCSSRuleList';
+import convTextToRules from './convTextToRules';
+import cssHelper from './cssHelper';
+import convUrlToAbs from './convUrlToAbs';
 
 function generateRulesAll(doc, externalCssCache) {
   var x;
@@ -63,4 +63,4 @@ function generateRulesAll(doc, externalCssCache) {
     });
   });
 }
-module.exports = generateRulesAll;
+export default generateRulesAll;

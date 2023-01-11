@@ -6,7 +6,7 @@
 // because the testing can be a long time if too many.
 
 var debugMode = process.env.NODE_ENV!=='production';
-const cssHelper = require('./cssHelper');
+import cssHelper from './cssHelper';
 
 // may match accoding to interaction
 const PseudoClass = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
@@ -17,7 +17,7 @@ const PseudoClass = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocu
   REG2=new RegExp('\\((:(' + PseudoClass + ')|::?(' + PseudoElement + '))+\\)', 'ig'),
   REG3=new RegExp('(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+', 'ig');
 
-function filterRules($0, objCss, taskTimerRecord) {
+function filterRules($0:HTMLElement, objCss, taskTimerRecord) {
   var promises = [];
   var matched = [];
   var keyFramUsed = [];
@@ -162,4 +162,4 @@ function filterRules($0, objCss, taskTimerRecord) {
   });
 }
 
-module.exports = filterRules;
+export default filterRules;
