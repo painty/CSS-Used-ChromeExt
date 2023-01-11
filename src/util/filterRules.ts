@@ -1,5 +1,3 @@
-/* global chrome */
-
 // this module is used to filter rules
 // by testing the dom and its children one by one.
 // each testing is wrapped by a settimeout timmer to make it async
