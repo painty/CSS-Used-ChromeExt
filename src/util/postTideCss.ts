@@ -53,7 +53,7 @@ function fix(s) {
   // concat the latter fontface and keyframs part
   arr = arr.concat(s.slice(endOfRuleLine));
 
-  return arr.join('\n').replace(/(['"']?)微软雅黑\1/, '"Microsoft Yahei"'); //.replace(/(['"']?)宋体\1/,' simsun ');
+  return arr.join('\n').replace(/(['"']?)\u5fae\u8f6f\u96c5\u9ed1\1/, '"Microsoft Yahei"'); //.replace(/(['"']?)宋体\1/,' simsun ');
 }
 
 export default fix

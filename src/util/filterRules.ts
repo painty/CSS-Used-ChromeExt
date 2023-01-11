@@ -4,42 +4,42 @@
 // because the testing can be a long time if too many.
 
 import debugMode from '../const/debugMode'
-import {cssHelper} from "./cssHelper";
+import { cssHelper } from './cssHelper'
 
 // may match accoding to interaction
 const PseudoClass =
-    "((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited",
+    '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
   PseudoElement =
-    "((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection|resizer|scrollbar(-(button|thumb|corner|track(-piece)?))?))|-ms-(clear|reveal|expand)|-moz-(focusring)|-webkit-(details-marker)|after|before|first-letter|first-line",
+    '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection|resizer|scrollbar(-(button|thumb|corner|track(-piece)?))?))|-ms-(clear|reveal|expand)|-moz-(focusring)|-webkit-(details-marker)|after|before|first-letter|first-line',
   MaxPossiblePseudoLength = 30,
   REG0 = new RegExp(
-    "^(:(" + PseudoClass + ")|::?(" + PseudoElement + "))+$",
-    ""
+    '^(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+$',
+    ''
   ),
   REG1 = new RegExp(
-    "( |^)(:(" + PseudoClass + ")|::?(" + PseudoElement + "))+( |$)",
-    "ig"
+    '( |^)(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+( |$)',
+    'ig'
   ),
   REG2 = new RegExp(
-    "\\((:(" + PseudoClass + ")|::?(" + PseudoElement + "))+\\)",
-    "ig"
+    '\\((:(' + PseudoClass + ')|::?(' + PseudoElement + '))+\\)',
+    'ig'
   ),
   REG3 = new RegExp(
-    "(:(" + PseudoClass + ")|::?(" + PseudoElement + "))+",
-    "ig"
-  );
+    '(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+',
+    'ig'
+  )
 
 function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
-  var promises = [];
-  var matched = [];
-  var keyFramUsed = [];
-  var fontFaceUsed = [];
+  var promises = []
+  var matched = []
+  var keyFramUsed = []
+  var fontFaceUsed = []
 
-  var domlist = [];
-  domlist.push($0);
-  Array.prototype.forEach.call($0.querySelectorAll("*"), function (e) {
-    domlist.push(e);
-  });
+  var domlist = []
+  domlist.push($0)
+  $0.querySelectorAll('*').forEach((e) => {
+    domlist.push(e)
+  })
 
   return new Promise(function (resolve, reject) {
     // loop every dom
@@ -52,33 +52,33 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
                 dom: domlist.length - 1,
                 rule: objCss.normRule.length,
                 rulenow: idx,
-              });
+              })
             }
 
-            if (typeof rule === "string") {
-              res(rule);
-              return;
+            if (typeof rule === 'string') {
+              res(rule)
+              return
             } else {
-              var selMatched = [];
+              var selMatched = []
               var arrSel = rule.selectors.filter(function (v, i, self) {
-                return self.indexOf(v) === i;
-              });
+                return self.indexOf(v) === i
+              })
               arrSel.forEach(function (sel) {
                 if (selMatched.indexOf(sel) !== -1) {
-                  return;
+                  return
                 }
                 // these pseudo class/elements can apply to any ele
                 // but wont apply now
                 // eg. :active{xxx}
                 // only works when clicked on and actived
                 if (sel.length < MaxPossiblePseudoLength && sel.match(REG0)) {
-                  selMatched.push(sel);
+                  selMatched.push(sel)
                 } else {
-                  let count = [];
+                  let count = []
                   let replacedSel = sel
-                    .replace(REG1, " * ")
-                    .replace(REG2, "(*)")
-                    .replace(REG3, "");
+                    .replace(REG1, ' * ')
+                    .replace(REG2, '(*)')
+                    .replace(REG3, '')
                   // try {
                   //   if ($0.matches(sel) || $0.querySelectorAll(sel).length !== 0) {
                   //     selMatched.push(sel);
@@ -92,28 +92,28 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
                       $0.matches(replacedSel) ||
                       $0.querySelectorAll(replacedSel).length !== 0
                     ) {
-                      selMatched.push(sel);
+                      selMatched.push(sel)
                     }
                   } catch (e) {
-                    count.push(replacedSel);
-                    count.push(e);
+                    count.push(replacedSel)
+                    count.push(e)
                   }
                   if (count.length === 4 && debugMode) {
                     if (count[2] === count[0]) {
-                      count = count.slice(0, 2);
+                      count = count.slice(0, 2)
                     }
-                    console.log(count);
+                    console.log(count)
                   }
                 }
-              });
+              })
               if (selMatched.length !== 0) {
                 var cssText = selMatched
                   .filter(function (v, i, self) {
-                    return self.indexOf(v) === i;
+                    return self.indexOf(v) === i
                   })
-                  .join(",");
-                cssText += "{" + cssHelper.normRuleNodeToText(rule) + "}";
-                res(cssText);
+                  .join(',')
+                cssText += '{' + cssHelper.normRuleNodeToText(rule) + '}'
+                res(cssText)
                 rule.nodes.forEach(function (ele) {
                   if (
                     ele.prop &&
@@ -123,78 +123,82 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
                   ) {
                     keyFramUsed = keyFramUsed.concat(
                       ele.value.split(/ *, */).map(function (ele) {
-                        return ele.split(" ")[0];
+                        return ele.split(' ')[0]
                       })
-                    );
+                    )
                   }
-                });
-                const fontfamilyOfRule = cssHelper.textToCss(cssText);
-                const cssRule = fontfamilyOfRule.cssRules[0];
-                if (cssRule && cssRule instanceof CSSStyleRule && cssRule.style.fontFamily) {
+                })
+                const fontfamilyOfRule = cssHelper.textToCss(cssText)
+                const cssRule = fontfamilyOfRule.cssRules[0]
+                if (
+                  cssRule &&
+                  cssRule instanceof CSSStyleRule &&
+                  cssRule.style.fontFamily
+                ) {
                   fontFaceUsed = fontFaceUsed.concat(
-                    cssRule.style.fontFamily.split(", ")
-                  );
+                    cssRule.style.fontFamily.split(', ')
+                  )
                 }
-                return;
+                return
               }
             }
-            res("");
-          }, 0);
-          taskTimerRecord.push(timer);
+            res('')
+          }, 0)
+          taskTimerRecord.push(timer)
         })
-      );
-    });
+      )
+    })
 
     Promise.all(promises)
       .then(function (result) {
         keyFramUsed = keyFramUsed.filter(function (v, i, self) {
-          return self.indexOf(v) === i;
-        });
+          return self.indexOf(v) === i
+        })
         fontFaceUsed = fontFaceUsed.filter(function (v, i, self) {
-          return self.indexOf(v) === i;
-        });
+          return self.indexOf(v) === i
+        })
         result.forEach(function (ele) {
           // typeof ele:string
           if (ele.length > 0) {
-            matched.push(ele);
+            matched.push(ele)
           }
-        });
-        var frameCommentMarkUsed = false;
+        })
+        var frameCommentMarkUsed = false
         keyFramUsed.forEach(function (ele) {
           objCss.keyFram.forEach(function (e) {
             if (ele === e.params) {
               if (!frameCommentMarkUsed) {
-                matched.push("/*! CSS Used keyframes */");
-                frameCommentMarkUsed = true;
+                matched.push('/*! CSS Used keyframes */')
+                frameCommentMarkUsed = true
               }
-              matched.push(cssHelper.keyFramNodeToText(e));
+              matched.push(cssHelper.keyFramNodeToText(e))
             }
-          });
-        });
-        var fontCommentMarkUsed = false;
+          })
+        })
+        var fontCommentMarkUsed = false
         fontFaceUsed.forEach(function (ele) {
           objCss.fontFace.forEach(function (e) {
             e.nodes.forEach(function (n) {
               if (
-                n.prop === "font-family" &&
-                ele.replace(/^(['"])?(.*)\1$/, "$2") ===
-                  n.value.replace(/^(['"])?(.*)\1$/, "$2")
+                n.prop === 'font-family' &&
+                ele.replace(/^(['"])?(.*)\1$/, '$2') ===
+                  n.value.replace(/^(['"])?(.*)\1$/, '$2')
               ) {
                 if (!fontCommentMarkUsed) {
-                  matched.push("/*! CSS Used fontfaces */");
-                  fontCommentMarkUsed = true;
+                  matched.push('/*! CSS Used fontfaces */')
+                  fontCommentMarkUsed = true
                 }
-                matched.push(cssHelper.fontFaceNodeToText(e));
+                matched.push(cssHelper.fontFaceNodeToText(e))
               }
-            });
-          });
-        });
-        resolve(matched);
+            })
+          })
+        })
+        resolve(matched)
       })
       .catch(function (err) {
-        reject(err);
-      });
-  });
+        reject(err)
+      })
+  })
 }
 
-export default filterRules;
+export default filterRules

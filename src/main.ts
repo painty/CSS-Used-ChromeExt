@@ -62,10 +62,11 @@ function getC($0: HTMLElement) {
   // console.log('NOT return,begin');
   doc = $0.ownerDocument
 
-  var links: string[] = []
-  Array.prototype.forEach.call(
-    $0.ownerDocument.querySelectorAll('link[rel~="stylesheet"][href]'),
-    function (ele: HTMLLinkElement) {
+  const links: string[] = []
+
+  $0.ownerDocument
+    .querySelectorAll('link[rel~="stylesheet"][href]')
+    .forEach((ele: HTMLLinkElement) => {
       // if href==='' , ele.getAttribute('href') !== ele.href
       const current = externalCssCache[ele.href]
       if (
@@ -74,8 +75,8 @@ function getC($0: HTMLElement) {
       ) {
         links.push(ele.href)
       }
-    }
-  )
+    })
+
   convLinkToText(links)
     .then(async (result) => {
       var promises: cssNodeObj[] = []

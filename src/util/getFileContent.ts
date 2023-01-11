@@ -1,15 +1,4 @@
-import isutf8 from 'is-utf8'
 import debugMode from '../const/debugMode'
-
-const parser = (data: ArrayBuffer) => {
-  var decoder: TextDecoder
-  if (isutf8(new Uint8Array(data))) {
-    decoder = new TextDecoder('UTF-8')
-  } else {
-    decoder = new TextDecoder('gbk')
-  }
-  return decoder.decode(data)
-}
 
 const getByFetch = (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -19,7 +8,8 @@ const getByFetch = (url: string): Promise<string> => {
     })
       .then((resonse) => resonse.arrayBuffer())
       .then((data) => {
-        resolve(parser(data))
+        const decoder = new TextDecoder()
+        resolve(decoder.decode(data))
       })
       .catch((error) => reject(error))
   })
