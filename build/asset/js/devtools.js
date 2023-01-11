@@ -31,53 +31,60 @@ function isProtected(url) {
   return url.match(/^(chrome|https:\/\/chrome\.google\.com\/webstore)/) !== null
 }
 
+function getInspectedTabUrl() {
+  return new Promise((res) => {
+    chrome.tabs.query({}, function (results) {
+      results.forEach(function (ele) {
+        if (ele.id === chrome.devtools.inspectedWindow.tabId) {
+          res(ele.url)
+        }
+      })
+    })
+  })
+}
+
 function evalGetc(cancel = false) {
   if (!cancel && !panelVisible) {
     return
   }
   showMessage(initialText)
-  chrome.tabs.query({}, function (results) {
-    let inspectedTabUrl = ''
-    results.forEach(function (ele) {
-      if (ele.id === chrome.devtools.inspectedWindow.tabId) {
-        inspectedTabUrl = ele.url
-      }
-    })
+
+  getInspectedTabUrl().then((inspectedTabUrl) => {
     if (isProtected(inspectedTabUrl)) {
       showMessage('This page is protected by Chrome.<br>Try another page.')
-    } else {
-      let arrFrameURL = []
-      chrome.devtools.inspectedWindow.getResources(function (resources) {
-        for (var i = 0; i < resources.length; i++) {
-          if (
-            resources[i].type === 'document' &&
-            resources[i].url.match(/^(https?:|file:\/)\/\//) !== null
-          ) {
-            arrFrameURL.push(resources[i].url)
-          }
-        }
-        if (arrFrameURL.length === 0) {
-          showMessage('Cannot work on this page.')
-        } else {
-          arrFrameURL.forEach(function (ele) {
-            chrome.devtools.inspectedWindow.eval(
-              'getCssUsed(' + (cancel ? '' : '$0') + ')',
-              {
-                frameURL: ele,
-                useContentScriptContext: true,
-              },
-              function (result, isException) {
-                if (isException) {
-                  // showMessage("isException:",isException);
-                } else {
-                  // console.log(result);
-                }
-              }
-            )
-          })
-        }
-      })
+      return
     }
+    let arrFrameURL = []
+    chrome.devtools.inspectedWindow.getResources(function (resources) {
+      for (var i = 0; i < resources.length; i++) {
+        if (
+          resources[i].type === 'document' &&
+          resources[i].url.match(/^(https?:|file:\/)\/\//) !== null
+        ) {
+          arrFrameURL.push(resources[i].url)
+        }
+      }
+      if (arrFrameURL.length === 0) {
+        showMessage('Cannot work on this page.')
+      } else {
+        arrFrameURL.forEach(function (ele) {
+          chrome.devtools.inspectedWindow.eval(
+            'getCssUsed(' + (cancel ? '' : '$0') + ')',
+            {
+              frameURL: ele,
+              useContentScriptContext: true,
+            },
+            function (result, isException) {
+              if (isException) {
+                // showMessage("isException:",isException);
+              } else {
+                // console.log(result);
+              }
+            }
+          )
+        })
+      }
+    })
   })
 }
 
@@ -121,8 +128,8 @@ chrome.devtools.panels.elements.createSidebarPane(
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // console.log('sender,message', sender, message)
-  if (message.tab) {
-    // Messages from content scripts should have sender.tab set
+  // Messages from content scripts should have sender.tab set
+  if (sender.tab && sender.tab.id === chrome.devtools.inspectedWindow.tabId) {
     if (message.action == 'getRecourceContent') {
       chrome.devtools.inspectedWindow.getResources((resources) => {
         // console.log('resources', resources);

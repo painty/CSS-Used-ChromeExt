@@ -58,8 +58,8 @@ document.documentElement.className +=
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // console.log('sender,message from panel', sender, message)
-  if (message.tab) {
-    // Messages from content scripts should have sender.tab set
+  // Messages from content scripts should have sender.tab set
+  if (sender.tab && sender.tab.id === chrome.devtools.inspectedWindow.tabId) {
     if (message.info !== undefined) {
       if (message.info === 'fileURLsNotAllowed') {
         accessToFileURLs = false
