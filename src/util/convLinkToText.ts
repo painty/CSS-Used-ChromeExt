@@ -31,7 +31,7 @@ function makeRequest(url: string): Promise<customCssObj> {
   return new Promise(function (resolve) {
     getFileContent(url).then(data=>{
       result.cssraw = data;
-      // console.log("Success:", url, result.cssraw);
+      // console.log("Success:", url, data);
       getSavedSettings().then((willConvUrlToAbs) => {
         if (willConvUrlToAbs) {
           result.cssraw = result.cssraw.replace(

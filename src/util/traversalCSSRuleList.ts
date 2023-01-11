@@ -71,7 +71,6 @@ function traversalCSSRuleList(
                 {
                   nodes:CSSRuleListItem.nodes
                 }
-                
               ).then(function (obj) {
                 _objCss.normRule.push(
                   "\n@media " + CSSRuleListItem.params + "{"

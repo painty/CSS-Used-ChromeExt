@@ -3,7 +3,7 @@
 // each testing is wrapped by a settimeout timmer to make it async
 // because the testing can be a long time if too many.
 
-const debugMode = import.meta.env.MODE === "development";
+import debugMode from '../const/debugMode'
 import {cssHelper} from "./cssHelper";
 
 // may match accoding to interaction

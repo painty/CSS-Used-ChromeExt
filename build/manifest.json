@@ -1,7 +1,7 @@
 {
   "name": "CSS Used",
-  "version": "2.5.0",
-  "permissions": ["<all_urls>","tabs"],
+  "version": "3.0.0",
+  "permissions": ["tabs"],
   "optional_permissions": ["storage"],
   "author": "Bob",
   "icons": {
@@ -12,17 +12,13 @@
   "description": "Get all css rules used by the selected DOM and its children.",
   "devtools_page": "devtools.html",
   "options_page": "options.html",
-  "manifest_version": 2,
-  "background": {
-    "scripts": ["asset/js/backgroundPage.js"],
-    "persistent": false
-  },
+  "manifest_version": 3,
   "content_scripts": [{
     "matches": ["<all_urls>"],
     "js": ["asset/js/content.js"],
     "all_frames": true
   }],
-  "browser_action": {
+  "action": {
     "default_icon": "asset/icon/128.png",
     "default_title": "CSS Used For Chrome Devtool",
     "default_popup": "popup.html"
