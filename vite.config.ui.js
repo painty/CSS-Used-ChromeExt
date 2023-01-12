@@ -13,8 +13,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        panel: resolve(__dirname, 'src/panel.html'),
-        options: resolve(__dirname, 'src/options.html'),
+        panel: resolve(__dirname, 'panel.html'),
+        options: resolve(__dirname, 'options.html'),
       }
     },
   },

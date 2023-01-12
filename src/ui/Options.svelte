@@ -2,7 +2,7 @@
   import logo from '/src/assets/logo.png'
   /* global chrome */
   let convUrlToAbsolute = true
-  let statusTextContent = ''
+  let buttonText = 'Save'
   function requestPermission() {
     // Permissions must be requested from inside a user gesture, convUrlToAbs a button's
     // click handler.
@@ -21,22 +21,22 @@
     )
   }
 
-  function removePermission() {
-    chrome.permissions.remove(
-      {
-        permissions: ['storage'],
-      },
-      function (removed) {
-        // console.log('removed',removed);
-        if (removed) {
-          // The permissions have been removed.
-        } else {
-          // The permissions have not been removed (e.g., you tried to remove
-          // required permissions).
-        }
-      }
-    )
-  }
+  // function removePermission() {
+  //   chrome.permissions.remove(
+  //     {
+  //       permissions: ['storage'],
+  //     },
+  //     function (removed) {
+  //       // console.log('removed',removed);
+  //       if (removed) {
+  //         // The permissions have been removed.
+  //       } else {
+  //         // The permissions have not been removed (e.g., you tried to remove
+  //         // required permissions).
+  //       }
+  //     }
+  //   )
+  // }
 
   function checkPermission() {
     chrome.permissions.contains(
@@ -62,9 +62,9 @@
       },
       function () {
         // Update status to let user know options were saved.
-        statusTextContent = 'Options saved.'
+        buttonText = 'Saved'
         setTimeout(function () {
-          statusTextContent = ''
+          buttonText = 'Save'
         }, 750)
       }
     )
@@ -118,23 +118,20 @@
     </div>
   </div>
 
-  <div class="status">{statusTextContent}</div>
-
   <div class="card">
-    <button on:click={requestPermission}>Save</button>
+    <button on:click={requestPermission}>{buttonText}</button>
   </div>
 
   <div class="separator" />
 
   <p>
-    Check out <a
+    Source code on <a
       href="https://github.com/painty/CSS-Used-ChromeExt"
       target="_blank"
       rel="noreferrer">GitHub</a
     >
   </p>
 
-  <p class="read-the-docs">Click on the Vite and Svelte logos to learn more</p>
 </main>
 
 <style>
@@ -153,9 +150,6 @@
   }
   .logo:hover {
     filter: drop-shadow(0 0 0.3em #98ff64bf);
-  }
-  .read-the-docs {
-    color: #888;
   }
   .form-item {
     text-align: left;
