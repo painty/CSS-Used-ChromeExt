@@ -19,7 +19,7 @@ export default defineConfig({
       // the proper extensions will be added
       formats: ["umd"],
       fileName: (format, entryName)=>{
-        return 'content.js'
+        return 'assets/content.js'
       }
     },
     minify : false,

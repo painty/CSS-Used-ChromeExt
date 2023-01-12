@@ -5,21 +5,26 @@
   "optional_permissions": ["storage"],
   "author": "Bob",
   "icons": {
-    "16": "asset/icon/16.png",
-    "48": "asset/icon/48.png",
-    "128": "asset/icon/128.png"
+    "16": "static/icon/16.png",
+    "48": "static/icon/48.png",
+    "128": "static/icon/128.png"
   },
   "description": "Get all css rules used by the selected DOM and its children.",
   "devtools_page": "devtools.html",
   "options_page": "options.html",
+  "options_ui": {
+    "chrome_style": false
+  },
   "manifest_version": 3,
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["asset/js/content.js"],
-    "all_frames": true
-  }],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["assets/content.js"],
+      "all_frames": true
+    }
+  ],
   "action": {
-    "default_icon": "asset/icon/128.png",
+    "default_icon": "static/icon/128.png",
     "default_title": "CSS Used For Chrome Devtool",
     "default_popup": "popup.html"
   }
