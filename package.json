@@ -1,10 +1,14 @@
 {
   "name": "css-used-chrome-ext",
   "version": "2.5.0",
+  "type": "module",
   "description": "A chrome extension to get all css rules used by the selected DOM and its children.",
   "scripts": {
-    "dev": "tsc && vite build --watch",
-    "build": "tsc && vite build --minify"
+    "dev:content": "vite build --watch --config vite.config.content.js",
+    "dev:ui": "vite build --watch --config vite.config.ui.js",
+    "build:content": "tsc && vite build --minify --config vite.config.content.js",
+    "build:ui": "tsc && vite build --minify --config vite.config.ui.js",
+    "build": "npm run build:ui && npm run build:content"
   },
   "repository": {
     "type": "git",
