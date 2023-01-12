@@ -7,7 +7,7 @@
     "dev:content": "vite build --watch --config vite.config.content.js",
     "dev:ui": "vite build --watch --config vite.config.ui.js",
     "build:content": "tsc && vite build --minify --config vite.config.content.js",
-    "build:ui": "tsc && vite build --minify --config vite.config.ui.js",
+    "build:ui": "vite build --minify --config vite.config.ui.js",
     "build": "npm run build:ui && npm run build:content"
   },
   "repository": {
@@ -31,15 +31,13 @@
     "postcss-safe-parser": "^6.0.0"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.206",
-    "@types/postcss-safe-parser": "^5.0.1",
-    "typescript": "^4.9.4",
-    "vite": "^4.0.4",
-    "vite-plugin-environment": "^1.1.3",
     "@sveltejs/vite-plugin-svelte": "^2.0.0",
     "@tsconfig/svelte": "^3.0.0",
+    "@types/chrome": "^0.0.206",
+    "@types/postcss-safe-parser": "^5.0.1",
     "svelte": "^3.54.0",
-    "svelte-check": "^2.10.0",
-    "tslib": "^2.4.1"
+    "typescript": "^4.9.4",
+    "vite": "^4.0.4",
+    "vite-plugin-environment": "^1.1.3"
   }
 }

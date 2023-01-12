@@ -14,7 +14,7 @@ export default defineConfig({
     // outDir:'./dist/',
     lib: {
       // Could also be a dictionary or array of multiple entry points
-      entry: resolve(__dirname, "src/main.ts"),
+      entry: resolve(__dirname, "src/content.ts"),
       name: "getCssUsed",
       // the proper extensions will be added
       formats: ["umd"],

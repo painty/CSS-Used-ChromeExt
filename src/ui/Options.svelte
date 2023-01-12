@@ -1,5 +1,5 @@
 <script lang="ts">
-  import logo from './assets/logo.png'
+  import logo from '/src/assets/logo.png'
   /* global chrome */
   let convUrlToAbsolute = true
   let statusTextContent = ''
