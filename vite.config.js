@@ -1,6 +1,7 @@
 import { resolve } from "path";
 import { defineConfig } from "vite";
 import EnvironmentPlugin from 'vite-plugin-environment'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 export default defineConfig({
   plugins: [
@@ -8,6 +9,7 @@ export default defineConfig({
       'NODE_ENV',
       'LANG'
     ]),
+    svelte()
   ],
   esbuild:{
     charset:"ascii"
@@ -27,6 +29,12 @@ export default defineConfig({
         return 'content.js'
       }
     },
-    minify : false
+    minify : false,
+    rollupOptions: {
+      input: {
+        panel: resolve(__dirname, 'panel.html'),
+        options: resolve(__dirname, 'options.html'),
+      },
+    },
   },
 });
