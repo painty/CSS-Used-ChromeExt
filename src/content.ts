@@ -11,7 +11,6 @@ const externalCssCache: { [index: string]: cssNodeObj } = {}
 //to store timers of testing if a html element matches a rule selector.
 const arrTimerOfTestingIfMatched: ReturnType<typeof setTimeout>[] = []
 let doc = document
-
 function getC($0: HTMLElement) {
   arrTimerOfTestingIfMatched.forEach(function (ele) {
     clearTimeout(ele)
@@ -28,12 +27,14 @@ function getC($0: HTMLElement) {
   } else {
     if ($0.nodeName.match(/^<pseudo:/)) {
       chrome.runtime.sendMessage({
-        status: "It's a pseudo element",
+        action: 'inform',
+        info: "It's a pseudo element",
       })
       return
     } else if ($0.nodeName === 'html' || $0.nodeName.match(/^#/)) {
       chrome.runtime.sendMessage({
-        status: 'Not for this element',
+        action: 'inform',
+        info: 'Not for this element',
       })
       return
     }
@@ -56,7 +57,8 @@ function getC($0: HTMLElement) {
   }
 
   chrome.runtime.sendMessage({
-    status: 'Preparing ...',
+    action: 'inform',
+    info: 'Preparing ...',
   })
 
   // console.log('NOT return,begin');
@@ -89,8 +91,10 @@ function getC($0: HTMLElement) {
       return promises
     })
     .catch(function (err) {
+      console.error('CSS-Used: ', err)
       chrome.runtime.sendMessage({
-        err: JSON.stringify(err),
+        action: 'inform',
+        info: 'convLinkToText error, see detail in console',
       })
     })
     .then(function (result) {
@@ -109,6 +113,7 @@ function getC($0: HTMLElement) {
     })
     .then(function (data) {
       chrome.runtime.sendMessage({
+        action: 'celebrate',
         css: postTideCss(data),
         html: $0.outerHTML
           .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')

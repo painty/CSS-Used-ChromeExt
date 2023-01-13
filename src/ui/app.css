@@ -43,13 +43,6 @@ h1 {
   padding: 2em;
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -58,7 +51,7 @@ button {
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
-  cursor: pointer;
+  /* cursor: pointer; */
   transition: border-color 0.25s;
 }
 button:hover {
@@ -67,6 +60,10 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+button:disabled:hover{
+  cursor: not-allowed;
 }
 
 @media (prefers-color-scheme: light) {

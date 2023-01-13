@@ -19,7 +19,7 @@ const getByChromeAPI = (url: string): Promise<string> => {
   return new Promise((resolve, _reject) => {
     chrome.runtime.sendMessage(
       {
-        action: 'getRecourceContent',
+        action: 'getResourceContent',
         url,
       },
       (response) => {
