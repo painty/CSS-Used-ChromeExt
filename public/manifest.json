@@ -12,9 +12,6 @@
   "description": "Get all css rules used by the selected DOM and its children.",
   "devtools_page": "devtools.html",
   "options_page": "options.html",
-  "options_ui": {
-    "chrome_style": false
-  },
   "manifest_version": 3,
   "content_scripts": [
     {

@@ -1,6 +1,4 @@
 <script lang="ts">
-  import logo from '/src/assets/logo.png'
-  /* global chrome */
   let convUrlToAbsolute = true
   let buttonText = 'Save'
   function requestPermission() {
@@ -93,7 +91,7 @@
       target="_blank"
       rel="noreferrer"
     >
-      <img src={logo} class="logo" alt="CSS Used Logo" />
+      <img src="/static/icon/128.png" class="logo" alt="CSS Used Logo" />
     </a>
     CSS Used Options
   </h1>

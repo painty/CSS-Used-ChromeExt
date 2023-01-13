@@ -17,3 +17,5 @@ div.somediv{color:#333;}
 ```css
 div.somediv{}
 ```
+
+5. (optional) Right click on the panel area, "inspect" and check if there's some suspicious logs in the console.

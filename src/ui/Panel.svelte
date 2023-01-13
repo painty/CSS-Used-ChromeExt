@@ -184,6 +184,7 @@
       value={strCss}
       bind:this={textareaCss}
       placeholder="no data"
+      spellcheck="false"
     />
   </div>
   <div class="operate">
