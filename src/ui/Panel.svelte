@@ -3,11 +3,13 @@
   import debugMode from '../const/debugMode'
 
   // Whether this extention can access file://
+  let isFileProtocol = false
   let haveAccessToFileURLs = true
   let isGooglePreservedPages = false
   let strHtml = ''
   let strCss = ''
   let popVisible = false
+  let tipsVisible = false
   let popText = ''
   let dataForCodepen = {
     title: 'New Pen!',
@@ -15,11 +17,17 @@
     css: '',
   }
 
-  async function updateAccessToFileURLs() {
-    // check file:// permission
-    chrome.extension.isAllowedFileSchemeAccess((allow: boolean) => {
-      haveAccessToFileURLs = allow
+  function checkAllowedFileSchemeAccess(): Promise<boolean> {
+    return new Promise((res) => {
+      chrome.extension.isAllowedFileSchemeAccess((allow: boolean) => {
+        res(allow)
+      })
     })
+  }
+
+  async function updateAccessToURL() {
+    // check file:// permission
+    haveAccessToFileURLs = await checkAllowedFileSchemeAccess()
     // check if is google preserved pages
     const inspectedTabUrl = await getInspectedTabUrl()
     if (
@@ -31,6 +39,12 @@
       isGooglePreservedPages = true
     } else {
       isGooglePreservedPages = false
+    }
+    // check if local files
+    if (inspectedTabUrl.match(/^(file)/) !== null) {
+      isFileProtocol = true
+    } else {
+      isFileProtocol = false
     }
   }
 
@@ -94,11 +108,11 @@
     window.open('https://github.com/painty/CSS-Used-ChromeExt/issues')
   }
 
-  document.documentElement.className +=
-    ' theme-' + chrome.devtools.panels.themeName
+  let className = ' theme-' + chrome.devtools.panels.themeName
 
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('sender,message from panel', sender, message)
+  chrome.runtime.onMessage.addListener(async (message, sender) => {
+    // console.log('sender,message from panel', sender, message)
+    tipsVisible = false
     // Messages from content scripts should have sender.tab set
     if (sender.tab && sender.tab.id === chrome.devtools.inspectedWindow.tabId) {
       if (message.action === 'inform') {
@@ -119,7 +133,17 @@
           message.info === 'onNavigated' ||
           message.info === 'onSelectionChanged'
         ) {
-          updateAccessToFileURLs()
+          // updateAccessToFileURLs()
+        } else if (message.info === 'frameURLsEmpty') {
+          await updateAccessToURL()
+          popVisible = true
+          if (isGooglePreservedPages) {
+            popText = 'Extensions are not allowed to run on Chrome preserved pages.'
+          } else if (isFileProtocol) {
+            tipsVisible = true
+          } else {
+            popText = "Can't work on this page."
+          }
         }
       }
     }
@@ -129,16 +153,24 @@
     chrome.runtime.sendMessage({
       action: 'inform',
       info: 'onSelectionChanged\n' + Math.random(),
+      _from: 'content',
+    })
+  }
+  function debugSendMessageError() {
+    chrome.runtime.sendMessage({
+      action: 'inform',
+      info: 'frameURLsEmpty',
+      _from: 'devtools',
     })
   }
 </script>
 
-<main>
+<main class={className}>
   <div class="title">
-    <button class="btn-issue" on:click={gotoGithubIssue}>issue?</button>
     CSS Used by $0 and its children:
+    <button class="btn-issue" on:click={gotoGithubIssue}>issue?</button>
   </div>
-  <div class="outp outp2">
+  <div class="output">
     <textarea disabled={strCss === ''} value={strCss} bind:this={textareaCss} />
   </div>
   <div class="operate">
@@ -150,37 +182,43 @@
     >
     <form action="https://codepen.io/pen/define" method="POST" target="_blank">
       <input type="hidden" name="data" value={dataForCodepen} />
-      <input
+      <button
         disabled={strCss === ''}
         title="Send snippet to CodePen"
         type="submit"
-        value="CodePen"
-        class="btn"
-      />
+        value=""
+        class="btn">CodePen</button
+      >
     </form>
   </div>
 
-  <!-- {#if popVisible} -->
-  <div class="pop">
-    <!-- <p>For the first time installed/updated/allowedFileAccess:</p> -->
-    <div class="info">
-      <pre>{popText}</pre>
+  {#if popVisible}
+    <div class="pop">
+      <!-- <p>For the first time installed/updated/allowedFileAccess:</p> -->
+      {#if tipsVisible}
+        <div class="tips">
+          <p>Extensions can't work on file:/// pages by default.</p>
+          <p>
+            You can <button on:click={openCSSUsedSettings}>turn on</button> the "Allow
+            access to file URLs"
+          </p>
+          <p>
+            and <button on:click={refreshContentScript}>refresh</button> the inspected
+            page + reopen devtools.
+          </p>
+        </div>
+      {:else}
+        <div class="info">
+          <pre>{popText}</pre>
+        </div>
+      {/if}
     </div>
-    <ol>
-      <li id="openCSSUsedSettings" on:click={openCSSUsedSettings}>
-        Turn on the "Allow access to file URLs" for file:/// page
-      </li>
-      <li><span id="refreshPage">Refresh</span> the inspected page</li>
-      <li>Restart Chrome</li>
-    </ol>
-    If problem persists, please<span id="issueSpan">create an issue</span>.
-    <ol />
-  </div>
-  <!-- {/if} -->
+  {/if}
 
   {#if debugMode}
     <div class="debug-tool">
-      <button on:click={debugSendMessage}>sendmessage</button>
+      <button on:click={debugSendMessage}>sendmessage:info</button>
+      <button on:click={debugSendMessageError}>sendmessage:error</button>
     </div>
   {/if}
 </main>
@@ -188,32 +226,48 @@
 <style>
   .debug-tool {
     position: fixed;
-    bottom: 10px;
+    bottom: 50px;
     left: 10px;
-    width: 100%;
+    opacity: 0.3;
+    border: 1px solid #38c;
+    box-sizing: border-box;
+  }
+  .debug-tool:hover {
+    opacity: 1;
+  }
+  main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .title {
+    padding: 0 2px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 26px;
+    font-size: 11px;
+  }
+  .title button {
+    z-index: 1;
+    background: none;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0.3em 0.6em;
+    border-radius: 4px;
+  }
+  .output {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;
   }
   textarea {
     font-family: Consolas, 'Lucida Console', monospace;
     font-size: 12px;
-  }
-  ::selection {
-    background: #cfe8fc;
-  }
-  body {
-    box-sizing: border-box;
-    background: inherit;
-    display: flex;
-    flex-direction: column;
-  }
-  .outp {
-    width: 50%;
-    box-sizing: border-box;
-    position: relative;
-    flex-grow: 1;
-  }
-  textarea {
     width: 100%;
-    height: 100%;
     box-sizing: border-box;
     padding: 10px;
     border: 1px solid #ccc;
@@ -222,18 +276,15 @@
     resize: none;
     overflow: auto;
   }
+  /* ::selection {
+    background: #cfe8fc;
+  } */
   textarea:focus {
     outline: none;
   }
-  .title {
-    padding: 5px 10px;
-  }
-  .outp2 {
-    float: right;
-    width: 100%;
-  }
-  /* form{} */
+
   .pop {
+    font-size: 12px;
     width: 100%;
     height: 100%;
     position: fixed;
@@ -247,16 +298,19 @@
   }
   .pop p {
     margin: auto;
-    font-size: 12px;
-    display: inline-block;
-    vertical-align: middle;
   }
-  .pop ol {
-    font-size: 12px;
-    text-align: left;
-    display: inline-block;
-    line-height: 2;
-    vertical-align: middle;
+  .pop button {
+    background: none;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0.3em 0.6em;
+    border-radius: 4px;
+  }
+  .pop .info{
+    padding-left: 10px;
+  }
+  .pop .info pre{
+    white-space: break-spaces;
   }
   .btn {
     position: relative;
@@ -279,15 +333,8 @@
   .btn:hover {
     background-color: #f3f3f3;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    /* cursor: pointer; */
   }
-  .btn-issue {
-    float: right;
-    cursor: pointer;
-    z-index: 1;
-    margin-left: 10px;
-  }
-  /* .btn-issue:hover{} */
+
   form {
     font-size: 12px;
     margin-right: 10px;
@@ -302,17 +349,7 @@
     margin-left: 10px;
     flex-wrap: wrap;
   }
-  #openCSSUsedSettings,
-  #refreshPage,
-  #issueSpan {
-    text-decoration: underline;
-    cursor: pointer;
-    color: blue;
-  }
-  .havefileaccess #openCSSUsedSettings {
-    display: none;
-  }
-  .theme-dark body {
+  .theme-dark{
     color: rgb(165, 165, 165);
   }
   .theme-dark textarea {

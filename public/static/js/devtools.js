@@ -23,6 +23,12 @@ function evalGetCssUsed(cancel = false) {
   }
   getAllFramesUrl().then((arrFrameURL) => {
     console.log('arrFrameURL', arrFrameURL)
+    if(arrFrameURL.length===0){
+      chrome.runtime.sendMessage({
+        action: 'inform',
+        info: 'frameURLsEmpty',
+      })
+    }
     arrFrameURL.forEach(function (ele) {
       chrome.devtools.inspectedWindow.eval(
         'getCssUsed(' + (cancel ? '' : '$0') + ')',
@@ -68,9 +74,6 @@ chrome.devtools.panels.elements.createSidebarPane(
     sidebar.onShown.addListener(function (win) {
       console.log('onShown')
       panelVisible = true
-      // if (accessToFileURLs) {
-      //   win.document.body.className = 'havefileaccess'
-      // }
       evalGetCssUsed()
       chrome.runtime.sendMessage({
         action: 'inform',
