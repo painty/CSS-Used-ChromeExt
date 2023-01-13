@@ -73,7 +73,7 @@
     // making body fontsize 75%*75%
     // That's not correct.
     const styleDefault = w.document.createElement('style')
-    styleDefault.appendChild(w.document.createTextNode(`body{font-size:16px;}`))
+    styleDefault.appendChild(w.document.createTextNode(`body{font-size:100%;}`))
     w.document.head.appendChild(styleDefault)
     // insert the picked css rules
     const styleInsert = w.document.createElement('style')

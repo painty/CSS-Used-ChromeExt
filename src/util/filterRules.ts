@@ -35,11 +35,7 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
   var keyFramUsed = []
   var fontFaceUsed = []
 
-  var domlist = []
-  domlist.push($0)
-  $0.querySelectorAll('*').forEach((e) => {
-    domlist.push(e)
-  })
+  const childrenCount = $0.querySelectorAll('*').length
 
   return new Promise(function (resolve, reject) {
     // loop every dom
@@ -48,12 +44,11 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
         new Promise(function (res) {
           var timer = setTimeout(function () {
             if (idx % 1000 === 0) {
-              let nDom = domlist.length - 1
               let nRule = objCss.normRule.length
               chrome.runtime.sendMessage({
                 action: 'inform',
-                info:`The selected dom has ${nDom}${
-                  nDom > 0 ? ' children' : ' child'
+                info:`The selected dom has ${childrenCount}${
+                  childrenCount > 1 ? ' children' : ' child'
                 }.\nPage rules are about ${nRule}.\nTraversing the ${
                   idx
                 }th rule...`

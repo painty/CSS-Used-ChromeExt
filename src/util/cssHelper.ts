@@ -4,6 +4,8 @@ export type cssObj = {
   fontFace: string[];
 };
 
+const docOffline = document.implementation.createHTMLDocument("");
+
 const cssHelper = {
   mergeobjCss: function (a: cssObj, b: cssObj) {
     ["normRule", "fontFace", "keyFram"].forEach(function (ele) {
@@ -43,13 +45,12 @@ const cssHelper = {
     return s;
   },
   textToCss: function (styleContent: string) {
-    const doc = document; //.implementation.createHTMLDocument(""),
     const styleElement = document.createElement("style");
     styleElement.innerText = styleContent;
     // the style will only be parsed once it is added to a document
-    doc.body.appendChild(styleElement);
+    docOffline.body.appendChild(styleElement);
     const resultCssRules = styleElement.sheet;
-    doc.body.removeChild(styleElement);
+    docOffline.body.removeChild(styleElement);
     return resultCssRules;
   },
 };
