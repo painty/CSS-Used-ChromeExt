@@ -1,4 +1,5 @@
 {
+  "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
     "target": "ES6",
     "useDefineForClassFields": true,
@@ -7,6 +8,8 @@
     "moduleResolution": "Node",
     "strict": false,
     "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": true,
     "isolatedModules": true,
     "esModuleInterop": true,
     "noEmit": true,
@@ -15,5 +18,5 @@
     "noImplicitReturns": true,
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]
 }

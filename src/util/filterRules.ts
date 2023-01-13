@@ -48,10 +48,15 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
         new Promise(function (res) {
           var timer = setTimeout(function () {
             if (idx % 1000 === 0) {
+              let nDom = domlist.length - 1
+              let nRule = objCss.normRule.length
               chrome.runtime.sendMessage({
-                dom: domlist.length - 1,
-                rule: objCss.normRule.length,
-                rulenow: idx,
+                action: 'inform',
+                info:`The selected dom has ${nDom}${
+                  nDom > 0 ? ' children' : ' child'
+                }.\nPage rules are about ${nRule}.\nTraversing the ${
+                  idx
+                }th rule...`
               })
             }
 

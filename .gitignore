@@ -46,6 +46,7 @@ Temporary Items
 node_modules
 
 # built
+dist
 build/asset/js/content.js
 .cache
 .vscode/launch.json

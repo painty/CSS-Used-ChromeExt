@@ -1,4 +1,5 @@
-import  {cssHelper, cssObj} from "./cssHelper";
+import  {cssHelper} from "./cssHelper";
+import type  {cssObj} from "./cssHelper";
 import convUrlToAbs from "./convUrlToAbs";
 import convLinkToText from "./convLinkToText";
 import convTextToRules from "./convTextToRules";
