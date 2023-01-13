@@ -138,4 +138,9 @@ function getC($0: HTMLElement) {
     })
 }
 
+chrome.runtime.sendMessage({
+  action: 'evalGetCssUsed',
+  info: "page loaded",
+})
+
 export default getC

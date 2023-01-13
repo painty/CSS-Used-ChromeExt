@@ -1,4 +1,5 @@
 let panelVisible = false
+let isPageLoaded = true
 
 function getAllFramesUrl() {
   const framesURLArray = []
@@ -18,12 +19,12 @@ function getAllFramesUrl() {
 }
 
 function evalGetCssUsed(cancel = false) {
-  if (!cancel && !panelVisible) {
+  if ((!cancel && !panelVisible) || !isPageLoaded) {
     return
   }
   getAllFramesUrl().then((arrFrameURL) => {
     console.log('arrFrameURL', arrFrameURL)
-    if(arrFrameURL.length===0){
+    if (arrFrameURL.length === 0) {
       chrome.runtime.sendMessage({
         action: 'inform',
         info: 'frameURLsEmpty',
@@ -59,6 +60,7 @@ chrome.devtools.panels.elements.onSelectionChanged.addListener(function () {
 
 chrome.devtools.network.onNavigated.addListener(function () {
   console.log('onNavigated')
+  isPageLoaded = false
   chrome.runtime.sendMessage({
     action: 'inform',
     info: 'onNavigated',
@@ -113,6 +115,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       })
       // https://stackoverflow.com/questions/44056271/chrome-runtime-onmessage-response-with-async-await
       return true
+    } else if (message.action == 'evalGetCssUsed') {
+      isPageLoaded = true
+      evalGetCssUsed()
     }
   } else {
     // Messages from panel scripts

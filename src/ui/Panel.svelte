@@ -100,9 +100,9 @@
     })
   }
 
-  function refreshContentScript() {
-    chrome.devtools.inspectedWindow.reload()
-  }
+  // function refreshContentScript() {
+  //   chrome.devtools.inspectedWindow.reload()
+  // }
 
   function gotoGithubIssue() {
     window.open('https://github.com/painty/CSS-Used-ChromeExt/issues')
@@ -138,7 +138,8 @@
           await updateAccessToURL()
           popVisible = true
           if (isGooglePreservedPages) {
-            popText = 'Extensions are not allowed to run on Chrome preserved pages.'
+            popText =
+              'Extensions are not allowed to run on Chrome preserved pages.'
           } else if (isFileProtocol) {
             tipsVisible = true
           } else {
@@ -171,7 +172,12 @@
     <button class="btn-issue" on:click={gotoGithubIssue}>issue?</button>
   </div>
   <div class="output">
-    <textarea disabled={strCss === ''} value={strCss} bind:this={textareaCss} />
+    <textarea
+      disabled={strCss === ''}
+      value={strCss}
+      bind:this={textareaCss}
+      placeholder="no data"
+    />
   </div>
   <div class="operate">
     <button on:click={copyResult} disabled={strCss === ''} id="copy" class="btn"
@@ -203,8 +209,7 @@
             access to file URLs"
           </p>
           <p>
-            and <button on:click={refreshContentScript}>refresh</button> the inspected
-            page + reopen devtools.
+            And restart chrome if necessary.
           </p>
         </div>
       {:else}
@@ -276,6 +281,9 @@
     resize: none;
     overflow: auto;
   }
+  button[disabled] {
+    filter: grayscale(1) opacity(0.5);
+  }
   /* ::selection {
     background: #cfe8fc;
   } */
@@ -306,10 +314,10 @@
     padding: 0.3em 0.6em;
     border-radius: 4px;
   }
-  .pop .info{
+  .pop .info {
     padding-left: 10px;
   }
-  .pop .info pre{
+  .pop .info pre {
     white-space: break-spaces;
   }
   .btn {
@@ -330,7 +338,7 @@
     height: 28px;
     margin: 8px 16px 8px 0;
   }
-  .btn:hover {
+  .btn:not([disabled]):hover {
     background-color: #f3f3f3;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
@@ -349,7 +357,7 @@
     margin-left: 10px;
     flex-wrap: wrap;
   }
-  .theme-dark{
+  .theme-dark {
     color: rgb(165, 165, 165);
   }
   .theme-dark textarea {
@@ -385,7 +393,7 @@
     color: #cccccc;
     background-color: rgb(36, 36, 36);
   }
-  .theme-dark .btn:hover {
+  .theme-dark .btn:not([disabled]):hover {
     background-color: #333333;
     box-shadow: rgba(230, 230, 230, 0.1) 0px 1px 2px;
   }
@@ -394,7 +402,7 @@
     border: none;
     color: #fff;
   }
-  #copy:hover {
+  #copy:not([disabled]):hover {
     background-color: #3b86e8;
   }
   .theme-dark #copy {
@@ -402,7 +410,7 @@
     border: none;
     color: #fff;
   }
-  .theme-dark #copy:hover {
+  .theme-dark #copy:not([disabled]):hover {
     background-color: #1177bb;
   }
 </style>
