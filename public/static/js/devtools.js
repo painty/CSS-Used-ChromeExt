@@ -23,7 +23,7 @@ function evalGetCssUsed(cancel = false) {
     return
   }
   getAllFramesUrl().then((arrFrameURL) => {
-    console.log('arrFrameURL', arrFrameURL)
+    // console.log('arrFrameURL', arrFrameURL)
     if (arrFrameURL.length === 0) {
       chrome.runtime.sendMessage({
         action: 'inform',
@@ -51,7 +51,7 @@ function evalGetCssUsed(cancel = false) {
 
 chrome.devtools.panels.elements.onSelectionChanged.addListener(function () {
   evalGetCssUsed()
-  console.log('onSelectionChanged')
+  // console.log('onSelectionChanged')
   chrome.runtime.sendMessage({
     action: 'inform',
     info: 'onSelectionChanged',
@@ -59,7 +59,7 @@ chrome.devtools.panels.elements.onSelectionChanged.addListener(function () {
 })
 
 chrome.devtools.network.onNavigated.addListener(function () {
-  console.log('onNavigated')
+  // console.log('onNavigated')
   isPageLoaded = false
   chrome.runtime.sendMessage({
     action: 'inform',
@@ -74,7 +74,7 @@ chrome.devtools.panels.elements.createSidebarPane(
     // sidebar.setHeight('calc(100vh - 48px)')
     sidebar.setPage('panel.html')
     sidebar.onShown.addListener(function (win) {
-      console.log('onShown')
+      // console.log('onShown')
       panelVisible = true
       evalGetCssUsed()
       chrome.runtime.sendMessage({
@@ -83,7 +83,7 @@ chrome.devtools.panels.elements.createSidebarPane(
       })
     })
     sidebar.onHidden.addListener(function () {
-      console.log('onHidden')
+      // console.log('onHidden')
       evalGetCssUsed(true)
       panelVisible = false
       chrome.runtime.sendMessage({

@@ -108,7 +108,11 @@
     window.open('https://github.com/painty/CSS-Used-ChromeExt/issues')
   }
 
-  let className = ' theme-' + chrome.devtools.panels.themeName
+  let className = ''
+  updateTheme();
+  function updateTheme() {
+    className = ' theme-' + chrome.devtools.panels.themeName
+  }
 
   chrome.runtime.onMessage.addListener(async (message, sender) => {
     // console.log('sender,message from panel', sender, message)
@@ -130,10 +134,13 @@
       if (message.action === 'inform') {
         if (
           message.info === 'onShown' ||
-          message.info === 'onNavigated' ||
           message.info === 'onSelectionChanged'
         ) {
           // updateAccessToFileURLs()
+          updateTheme()
+        } else if (message.info === 'onNavigated') {
+          popVisible = true
+          popText = 'onNavigated'
         } else if (message.info === 'frameURLsEmpty') {
           await updateAccessToURL()
           popVisible = true
@@ -169,7 +176,7 @@
 <main class={className}>
   <div class="title">
     CSS Used by $0 and its children:
-    <button class="btn-issue" on:click={gotoGithubIssue}>issue?</button>
+    <button class="plain" on:click={gotoGithubIssue}>issue?</button>
   </div>
   <div class="output">
     <textarea
@@ -205,12 +212,11 @@
         <div class="tips">
           <p>Extensions can't work on file:/// pages by default.</p>
           <p>
-            You can <button on:click={openCSSUsedSettings}>turn on</button> the "Allow
-            access to file URLs"
+            You can <button on:click={openCSSUsedSettings} class="plain"
+              >turn on</button
+            > the "Allow access to file URLs"
           </p>
-          <p>
-            And restart chrome if necessary.
-          </p>
+          <p>And restart chrome if necessary.</p>
         </div>
       {:else}
         <div class="info">
@@ -307,7 +313,7 @@
   .pop p {
     margin: auto;
   }
-  .pop button {
+  button.plain {
     background: none;
     text-decoration: underline;
     cursor: pointer;
@@ -358,7 +364,8 @@
     flex-wrap: wrap;
   }
   .theme-dark {
-    color: rgb(165, 165, 165);
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
   }
   .theme-dark textarea {
     background-color: #242424;
@@ -369,8 +376,8 @@
     background-color: #999;
   }
   .theme-dark .pop {
-    color: #000;
-    background: rgba(255, 255, 255, 0.55);
+    color: #ccc;
+    background: rgba(0, 0, 0, 0.55);
   }
   .theme-dark ::-webkit-scrollbar {
     background: #333;
@@ -388,14 +395,24 @@
     background: #242424;
     border-left: 1px solid #2b2b2b;
   }
-  .theme-dark .btn {
+  .theme-dark button {
     border-color: rgba(230, 230, 230, 0.2);
     color: #cccccc;
     background-color: rgb(36, 36, 36);
   }
-  .theme-dark .btn:not([disabled]):hover {
+  .theme-dark button.plain {
+    border-color: transparent;
+    background: none;
+  }
+  .theme-dark button:not([disabled]):hover {
     background-color: #333333;
     box-shadow: rgba(230, 230, 230, 0.1) 0px 1px 2px;
+  }
+  .theme-dark .pop button.plain {
+    color: inherit;
+  }
+  .theme-dark .pop button.plain:not([disabled]):hover {
+    color: #cccccc;
   }
   #copy {
     background-color: #1a73e8;

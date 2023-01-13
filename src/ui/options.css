@@ -1,4 +1,27 @@
-body{
+:root {
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+
+  a:hover {
+    color: #a0ff74;
+  }
+
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+body {
   display: flex;
   place-items: center;
+  justify-content: center;
+  min-width: 500px;
 }

@@ -6,8 +6,8 @@ if (debugMode) {
   chromeObj = {
     devtools: {
       panels: {
-        themeName: 'default',
-        // themeName: 'dark',
+        // themeName: 'default',
+        themeName: 'dark',
       },
       inspectedWindow: {
         tabId: 123,
@@ -22,8 +22,8 @@ if (debugMode) {
       query:(_obj,fn)=>{
         const arr=[{
           id: 123,
-          // url: 'file:///Volumes/index.html'
-          url: 'http://localhost/index.html'
+          url: 'file:///Volumes/index.html'
+          // url: 'http://localhost/index.html'
         }]
         fn.call(null,arr)
       }
