@@ -109,13 +109,14 @@
   }
 
   let className = ''
-  updateTheme();
+  updateTheme()
   function updateTheme() {
     className = ' theme-' + chrome.devtools.panels.themeName
   }
 
   chrome.runtime.onMessage.addListener(async (message, sender) => {
     // console.log('sender,message from panel', sender, message)
+    // console.log('sender.tab',sender.tab);
     tipsVisible = false
     // Messages from content scripts should have sender.tab set
     if (sender.tab && sender.tab.id === chrome.devtools.inspectedWindow.tabId) {
@@ -131,26 +132,28 @@
       }
     } else {
       // Messages from devtools.js
-      if (message.action === 'inform') {
-        if (
-          message.info === 'onShown' ||
-          message.info === 'onSelectionChanged'
-        ) {
-          // updateAccessToFileURLs()
-          updateTheme()
-        } else if (message.info === 'onNavigated') {
-          popVisible = true
-          popText = 'onNavigated'
-        } else if (message.info === 'frameURLsEmpty') {
-          await updateAccessToURL()
-          popVisible = true
-          if (isGooglePreservedPages) {
-            popText =
-              'Extensions are not allowed to run on Chrome preserved pages.'
-          } else if (isFileProtocol) {
-            tipsVisible = true
-          } else {
-            popText = "Can't work on this page."
+      if (message.tabId === chrome.devtools.inspectedWindow.tabId) {
+        if (message.action === 'inform') {
+          if (
+            message.info === 'onShown' ||
+            message.info === 'onSelectionChanged'
+          ) {
+            // updateAccessToFileURLs()
+            updateTheme()
+          } else if (message.info === 'onNavigated') {
+            popVisible = true
+            popText = 'onNavigated'
+          } else if (message.info === 'frameURLsEmpty') {
+            await updateAccessToURL()
+            popVisible = true
+            if (isGooglePreservedPages) {
+              popText =
+                'Extensions are not allowed to run on Chrome preserved pages.'
+            } else if (isFileProtocol) {
+              tipsVisible = true
+            } else {
+              popText = "Can't work on this page."
+            }
           }
         }
       }
