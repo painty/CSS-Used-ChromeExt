@@ -76,6 +76,7 @@ chrome.devtools.panels.elements.createSidebarPane(
   function (sidebar) {
     // sidebar.setHeight('calc(100vh - 48px)')
     sidebar.setPage('panel.html')
+    initListener()
     sidebar.onShown.addListener(function (win) {
       // console.log('onShown')
       panelVisible = true
@@ -99,32 +100,34 @@ chrome.devtools.panels.elements.createSidebarPane(
   }
 )
 
-// passing resources to content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // console.log('sender,message', sender, message)
-  // Messages from content scripts should have sender.tab set
-  if (sender.tab && sender.tab.id === chrome.devtools.inspectedWindow.tabId) {
-    if (message.action == 'getResourceContent') {
-      chrome.devtools.inspectedWindow.getResources((resources) => {
-        // console.log('resources', resources);
-        const resourceMatched = resources.find((r) => r.url === message.url)
-        resourceMatched.getContent((content, encoding) => {
-          // https://developer.chrome.com/docs/extensions/reference/devtools_inspectedWindow/#method-getResources
-          // encoding:Currently, only base64 is supported.
-          // console.log(resourceMatched, encoding, content.length);
-          sendResponse({
-            url: message.url,
-            content,
+function initListener() {
+  // passing resources to content script
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // console.log('sender,message', sender, message)
+    // Messages from content scripts should have sender.tab set
+    if (sender.tab && sender.tab.id === chrome.devtools.inspectedWindow.tabId) {
+      if (message.action == 'getResourceContent') {
+        chrome.devtools.inspectedWindow.getResources((resources) => {
+          // console.log('resources', resources);
+          const resourceMatched = resources.find((r) => r.url === message.url)
+          resourceMatched.getContent((content, encoding) => {
+            // https://developer.chrome.com/docs/extensions/reference/devtools_inspectedWindow/#method-getResources
+            // encoding:Currently, only base64 is supported.
+            // console.log(resourceMatched, encoding, content.length);
+            sendResponse({
+              url: message.url,
+              content,
+            })
           })
         })
-      })
-      // https://stackoverflow.com/questions/44056271/chrome-runtime-onmessage-response-with-async-await
-      return true
-    } else if (message.action == 'evalGetCssUsed') {
-      isPageLoaded = true
-      evalGetCssUsed()
+        // https://stackoverflow.com/questions/44056271/chrome-runtime-onmessage-response-with-async-await
+        return true
+      } else if (message.action == 'evalGetCssUsed') {
+        isPageLoaded = true
+        evalGetCssUsed()
+      }
+    } else {
+      // Messages from panel scripts
     }
-  } else {
-    // Messages from panel scripts
-  }
-})
+  })
+}

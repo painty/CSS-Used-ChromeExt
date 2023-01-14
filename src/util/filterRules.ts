@@ -41,7 +41,7 @@ function filterRules($0: HTMLElement, objCss) {
     // loop every dom
     objCss.normRule.forEach(function (rule, idx) {
       promises.push(
-        new Promise(function (res) {
+        new Promise(async function (res) {
           if (idx % 1000 === 0) {
             let nRule = objCss.normRule.length
             chrome.runtime.sendMessage({
@@ -94,6 +94,7 @@ function filterRules($0: HTMLElement, objCss) {
               }
             })
             if (selMatched.length !== 0) {
+              // remove duplicate selector
               var cssText = selMatched
                 .filter(function (v, i, self) {
                   return self.indexOf(v) === i
@@ -114,16 +115,19 @@ function filterRules($0: HTMLElement, objCss) {
                   )
                 }
               })
-              const fontfamilyOfRule = cssHelper.textToCss(cssText)
-              const cssRule = fontfamilyOfRule.cssRules[0]
-              if (
-                cssRule &&
-                cssRule instanceof CSSStyleRule &&
-                cssRule.style.fontFamily
-              ) {
-                fontFaceUsed = fontFaceUsed.concat(
-                  cssRule.style.fontFamily.split(', ')
-                )
+
+              if (rule && rule.nodes) {
+                for (let index = 0; index < rule.nodes.length; index++) {
+                  const declaration = rule.nodes[index]
+                  if (declaration && declaration.prop === 'font-family') {
+                    fontFaceUsed = [
+                      ...fontFaceUsed,
+                      ...declaration.value
+                        .split(/ *, */)
+                        .filter((e: string) => !!e),
+                    ]
+                  }
+                }
               }
               return
             }
