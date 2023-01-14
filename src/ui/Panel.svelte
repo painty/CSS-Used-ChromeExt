@@ -178,7 +178,7 @@
 
 <main class={className}>
   <div class="title">
-    CSS Used by $0 and its children:
+    <span>CSS Used by $0 and its descendants:</span>
     <button class="plain" on:click={gotoGithubIssue}>issue?</button>
   </div>
   <div class="output">
@@ -264,8 +264,14 @@
     height: 26px;
     font-size: 11px;
   }
+  .title span {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
   .title button {
     z-index: 1;
+    flex: none;
     background: none;
     text-decoration: underline;
     cursor: pointer;

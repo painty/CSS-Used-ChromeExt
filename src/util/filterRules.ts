@@ -1,5 +1,5 @@
 // this module is used to filter rules
-// by testing the dom and its children one by one.
+// by testing the dom and its descendants one by one.
 // each testing is wrapped by a settimeout timmer to make it async
 // because the testing can be a long time if too many.
 
@@ -35,7 +35,7 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
   var keyFramUsed = []
   var fontFaceUsed = []
 
-  const childrenCount = $0.querySelectorAll('*').length
+  const descendantsCount = $0.querySelectorAll('*').length
 
   return new Promise(function (resolve, reject) {
     // loop every dom
@@ -47,11 +47,7 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
               let nRule = objCss.normRule.length
               chrome.runtime.sendMessage({
                 action: 'inform',
-                info:`The selected dom has ${childrenCount}${
-                  childrenCount > 1 ? ' children' : ' child'
-                }.\nPage rules are about ${nRule}.\nTraversing the ${
-                  idx
-                }th rule...`
+                info: `The selected dom has ${descendantsCount} descendants.\nPage rules are about ${nRule}.\nTraversing the ${idx}th rule...`,
               })
             }
 

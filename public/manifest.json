@@ -9,7 +9,7 @@
     "48": "static/icon/48.png",
     "128": "static/icon/128.png"
   },
-  "description": "Get all css rules used by the selected DOM and its children.",
+  "description": "Get all css rules used by the selected DOM and its descendants.",
   "devtools_page": "devtools.html",
   "options_page": "options.html",
   "manifest_version": 3,
