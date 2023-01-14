@@ -74,7 +74,11 @@ BANNER {}
 /*body,.S_page{background-image:url('http://ww3.sinaimg.cn/woriginal/4e71f332gw1e3r8b7kep9j.jpg');background-repeat:repeat;background-attachment:fixed;background-position:center top;}*/
 
 body {
-  font-family: "WBswficon";
+  font-family: "Cutive Mono";
+}
+
+.font-style {
+  font-family: 'Cutive Mono',  icon-font,      Inter, Avenir,   Helvetica  , Arial, sans-serif  ;
 }
 
 @media print {

@@ -1,34 +1,47 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>CSS Used Test</title>
+    <link rel="stylesheet" type="text/css" href="./css/index.css" />
+    <link rel="stylesheet" type="text/css" href="./css/font.css" />
+    <style type="text/css" media="print">
+      i {
+        color: #789;
+        font-family: icon-font;
+      }
+    </style>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>CSS Used Test</title>
-  <link rel="stylesheet" type="text/css" href="./css/index.css">
-  <link rel="stylesheet" type="text/css" href="./css/font.css">
-  <style type="text/css" media="print">
-     i{color:#789;font-family: WBswficon}
-  </style>
-</head>
-
-<body>
-  <div>
-    <a>Link</a>
-  </div>
-  <div>
-    <b>Bold</b>
-  </div>
-  <div>
-    <i>Italic</i>
-  </div>
-  <p class="S_spetxt">.S_spetxt</p>
-  <iframe src="./iframe/index.html" frameborder="0"></iframe>
-  <p>Compare text below with result in devtools, with &lt;html&gt; tag selected.</p>
-  <textarea id="expected" readonly></textarea>
-  <script>
-(function(){
-  const prefix = (location.protocol+'//'+location.host+location.pathname).replace(/\/index\.html$/,'');
-  document.querySelector('#expected').value = `/*! CSS Used from: ${prefix}/css/index.css */
+  <body>
+    <div>
+      <a>Link</a>
+    </div>
+    <div>
+      <b>Bold</b>
+    </div>
+    <div>
+      <i>Italic</i>
+    </div>
+    <div class="font-style">FontFamily</div>
+    <p class="S_spetxt">.S_spetxt</p>
+    <iframe src="./iframe/index.html" frameborder="0"></iframe>
+    <p>
+      Compare text below with result in devtools, with &lt;html&gt; tag
+      selected.
+    </p>
+    <textarea id="expected" readonly></textarea>
+    <script>
+      ;(function () {
+        const prefix = (
+          location.protocol +
+          '//' +
+          location.host +
+          location.pathname
+        ).replace(/\/index\.html$/, '')
+        document.querySelector(
+          '#expected'
+        ).value = `/*! CSS Used from: ${prefix}/css/index.css */
 /*! @import ${prefix}/css/base.css screen, projection */
 @media screen, projection{
 body{background:#ccc;}
@@ -56,7 +69,8 @@ a{width:16.666%;}
 b{height:10px;}
 }
 }
-body{font-family:"WBswficon";}
+body{font-family:"Cutive Mono";}
+.font-style{font-family:'Cutive Mono',  icon-font,      Inter, Avenir,   Helvetica  , Arial, sans-serif;}
 @media print{
 i{font-size:10pt;}
 }
@@ -68,15 +82,14 @@ b{font-size:20px;}
 body{font-family:'Cutive Mono';}
 /*! CSS Used from: Embedded ; media=print */
 @media print{
-i{color:#789;font-family:WBswficon;}
+i{color:#789;font-family:icon-font;}
 }
 /*! CSS Used keyframes */
 @-webkit-keyframes teatnamekey{0%{width:10px;}100%{height:10px;}}
 @keyframes teatnamekey{0%{width:10px;}100%{height:10px;}}
 /*! CSS Used fontfaces */
-@font-face{font-family:'WBswficon';src:url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.eot?id=141111232016");src:url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.eot?id=141111232016#iefix") format('embedded-opentype'), url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.svg?id=141111232016") format('svg'), url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.woff?id=141111232016") format('woff'), url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.ttf?id=141111232016") format('truetype');src:url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.eot?id=141111232016") \\9;font-weight:normal;font-style:normal;}`
-}());
-  </script>
-</body>
-
+@font-face{font-family:'icon-font';src:url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.eot?id=141111232016");src:url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.eot?id=141111232016#iefix") format('embedded-opentype'), url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.svg?id=141111232016") format('svg'), url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.woff?id=141111232016") format('woff'), url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.ttf?id=141111232016") format('truetype');src:url("http://img.t.sinajs.cn/t6/style//images/common/font/swbficon.eot?id=141111232016") \\9;font-weight:normal;font-style:normal;}`
+      })()
+    </script>
+  </body>
 </html>
