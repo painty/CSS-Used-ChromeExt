@@ -75,14 +75,7 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
                     .replace(REG1, ' * ')
                     .replace(REG2, '(*)')
                     .replace(REG3, '')
-                  // try {
-                  //   if ($0.matches(sel) || $0.querySelectorAll(sel).length !== 0) {
-                  //     selMatched.push(sel);
-                  //   }
-                  // } catch (e) {
-                  //   count.push(sel);
-                  //   count.push(e);
-                  // }
+
                   try {
                     if (
                       $0.matches(replacedSel) ||
