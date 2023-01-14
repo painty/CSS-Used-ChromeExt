@@ -4,7 +4,7 @@
   "type": "module",
   "description": "A chrome extension to get all css rules used by the selected DOM and its descendants.",
   "scripts": {
-    "dev:content": "vite build --watch --config vite.config.content.js",
+    "dev:content": "npm run build:ui && vite build --watch --config vite.config.content.js",
     "dev:ui": "vite --config vite.config.ui.js",
     "build:content": "tsc && vite build --minify --config vite.config.content.js",
     "build:ui": "vite build --minify --config vite.config.ui.js",
