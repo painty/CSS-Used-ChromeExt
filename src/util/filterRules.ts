@@ -8,9 +8,9 @@ import { cssHelper } from './cssHelper'
 
 // may match accoding to interaction
 const PseudoClass =
-    '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
+    'active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited|focus-within|focus-visible|fullscreen',
   PseudoElement =
-    '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection|resizer|scrollbar(-(button|thumb|corner|track(-piece)?))?))|-ms-(clear|reveal|expand)|-moz-(focusring)|-webkit-(details-marker)|after|before|first-letter|first-line',
+    '((-(webkit|moz)-)?(scrollbar(-(button|thumb|corner|track(-piece)?))?))|-webkit-(details-marker|resizer)|after|before|first-letter|first-line|placeholder|selection',
   MaxPossiblePseudoLength = 30,
   REG0 = new RegExp(
     '^(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+$',
@@ -69,7 +69,7 @@ function filterRules($0: HTMLElement, objCss) {
               if (sel.length < MaxPossiblePseudoLength && sel.match(REG0)) {
                 selMatched.push(sel)
               } else {
-                let count = []
+                let errorArray = []
                 let replacedSel = sel
                   .replace(REG1, ' * ')
                   .replace(REG2, '(*)')
@@ -83,14 +83,13 @@ function filterRules($0: HTMLElement, objCss) {
                     selMatched.push(sel)
                   }
                 } catch (e) {
-                  count.push(replacedSel)
-                  count.push(e)
+                  errorArray.push({
+                    selector: replacedSel,
+                    error: e,
+                  })
                 }
-                if (count.length === 4 && debugMode) {
-                  if (count[2] === count[0]) {
-                    count = count.slice(0, 2)
-                  }
-                  console.log(count)
+                if (debugMode) {
+                  console.warn('selector match error: ', errorArray)
                 }
               }
             })
@@ -105,9 +104,8 @@ function filterRules($0: HTMLElement, objCss) {
               rule.nodes.forEach(function (ele) {
                 if (
                   ele.prop &&
-                  ele.prop.match(
-                    /^(-(webkit|moz|ms|o)-)?animation(-name)?$/i
-                  ) !== null
+                  ele.prop.match(/^(-(webkit|moz)-)?animation(-name)?$/i) !==
+                    null
                 ) {
                   keyFramUsed = keyFramUsed.concat(
                     ele.value.split(/ *, */).map(function (ele) {
