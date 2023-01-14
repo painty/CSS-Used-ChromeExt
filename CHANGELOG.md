@@ -1,3 +1,11 @@
+**ver 3.0.0 | 15/01/2023**
+
+1. Migrated to Manifest V3.
+1. Resources are read from local caches, making it much faster and solves the [cross-origin issue](https://github.com/painty/CSS-Used-ChromeExt/issues/52).
+1. Optimized style parsing in a more efficient way.
+1. Dropped support for some outdated CSS, mostly -o- and -ms- prefixed properties.
+1. Implemented a new UI powered by Svelte, with some visual tweaks.
+
 **ver 2.5.0 | 15/03/2021**
 
 1. New. Option page.
@@ -82,7 +90,7 @@
 2. Add. Two buttons: `Copy to clipboard` & `Send to codepen`
 3. Better handling for pseudo element/class
 
-**ver 1.4.2 | 04/15/2017** 
+**ver 1.4.2 | 04/15/2017**
 
 1. Add. calculating progress display.
 
@@ -90,7 +98,7 @@
 
 1. multiple pseudo class/element detection
 
-**ver 1.4.0 | 04/09/2017** 
+**ver 1.4.0 | 04/09/2017**
 
 1. Add. media query support
 2. Add. font-face support

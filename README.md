@@ -22,9 +22,11 @@ You can click "Preview" to see the selected part with clean style rules.
 
 ## FAQ
 
-1. Permission to read my browsing history
+1. No result
 
-    See https://github.com/painty/CSS-Used-ChromeExt/wiki/Permission-to-read-my-browsing-history%3F
+   1. Check whether it's Chrome Web Store pages, which is `https://chrome.google.com/webstore/....`, which won't allow content script injection.
+   1. If it's a normal webpage, check site access permission https://github.com/painty/CSS-Used-ChromeExt/issues/13#issuecomment-687244215
+   1. If it's a local file, chrome won't allow local file access by default. You can turn on the "Allow access to file URLs" in the extension management page.
 
 1. Preview not right
 
@@ -33,21 +35,9 @@ You can click "Preview" to see the selected part with clean style rules.
 
 1. Not all the CSS is got
 
-    The result is generated based on the CURRENT HTML DOM. If a div doesn't exist in the document unless a specific user interaction, the result may miss out the style rules for the newly born div.
-    
-1. Always says to fresh the page
-
-   First check whether it's Chrome Web Store pages, which is `https://chrome.google.com/webstore/....`, which won't allow content script injection. If it's a normal webpage , please create an issue.
+    1. The result is generated based on the CURRENT HTML DOM. If a div doesn't exist in the document unless a specific user interaction, the result may miss out the style rules for the newly born div.
+    1. CSS custom properties (variables) are partially supported. Not working for declarations defined by $0's ancestor. Thinking it as a inheritable CSS property, as this tool won't handle inherit style.
 
 ## Changelog
 
-Go to [releases](https://github.com/painty/CSS-Used-ChromeExt/releases)
-
-For older version infomation:
 Go to the [Changelog page](CHANGELOG.md)
-
-## Dev
-
- 1. `npm install` to install all the dependencies
- 2. `npm run build` gernerate `/build/asset/js/content.js`. Drag the `build` folder to `chrome://extensions/`, remember to turn on the dev mode on the top right of the page.
- 3. `npm test` will start a local `http://localhost:1234` server. Visiting the test page and check the console.
