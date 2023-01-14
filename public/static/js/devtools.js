@@ -28,6 +28,7 @@ function evalGetCssUsed(cancel = false) {
       chrome.runtime.sendMessage({
         action: 'inform',
         info: 'frameURLsEmpty',
+        tabId: chrome.devtools.inspectedWindow.tabId, // to specify message from
       })
     }
     arrFrameURL.forEach(function (ele) {
@@ -55,7 +56,8 @@ chrome.devtools.panels.elements.onSelectionChanged.addListener(function () {
   chrome.runtime.sendMessage({
     action: 'inform',
     info: 'onSelectionChanged',
-  })
+    tabId: chrome.devtools.inspectedWindow.tabId,
+  }).catch(console.log)
 })
 
 chrome.devtools.network.onNavigated.addListener(function () {
@@ -64,6 +66,7 @@ chrome.devtools.network.onNavigated.addListener(function () {
   chrome.runtime.sendMessage({
     action: 'inform',
     info: 'onNavigated',
+    tabId: chrome.devtools.inspectedWindow.tabId,
   })
   // initialText = `on Navigated.<li>Select another dom on the left </li>or<li>Reopen the Devtool</li>`
 })
@@ -80,6 +83,7 @@ chrome.devtools.panels.elements.createSidebarPane(
       chrome.runtime.sendMessage({
         action: 'inform',
         info: 'onShown',
+        tabId: chrome.devtools.inspectedWindow.tabId,
       })
     })
     sidebar.onHidden.addListener(function () {
@@ -89,6 +93,7 @@ chrome.devtools.panels.elements.createSidebarPane(
       chrome.runtime.sendMessage({
         action: 'inform',
         info: 'onHidden',
+        tabId: chrome.devtools.inspectedWindow.tabId,
       })
     })
   }

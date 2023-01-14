@@ -73,7 +73,7 @@
     // making body fontsize 75%*75%
     // That's not correct.
     const styleDefault = w.document.createElement('style')
-    styleDefault.appendChild(w.document.createTextNode(`body{font-size:16px;}`))
+    styleDefault.appendChild(w.document.createTextNode(`body{font-size:100%;}`))
     w.document.head.appendChild(styleDefault)
     // insert the picked css rules
     const styleInsert = w.document.createElement('style')
@@ -109,13 +109,14 @@
   }
 
   let className = ''
-  updateTheme();
+  updateTheme()
   function updateTheme() {
     className = ' theme-' + chrome.devtools.panels.themeName
   }
 
   chrome.runtime.onMessage.addListener(async (message, sender) => {
     // console.log('sender,message from panel', sender, message)
+    // console.log('sender.tab',sender.tab);
     tipsVisible = false
     // Messages from content scripts should have sender.tab set
     if (sender.tab && sender.tab.id === chrome.devtools.inspectedWindow.tabId) {
@@ -131,26 +132,28 @@
       }
     } else {
       // Messages from devtools.js
-      if (message.action === 'inform') {
-        if (
-          message.info === 'onShown' ||
-          message.info === 'onSelectionChanged'
-        ) {
-          // updateAccessToFileURLs()
-          updateTheme()
-        } else if (message.info === 'onNavigated') {
-          popVisible = true
-          popText = 'onNavigated'
-        } else if (message.info === 'frameURLsEmpty') {
-          await updateAccessToURL()
-          popVisible = true
-          if (isGooglePreservedPages) {
-            popText =
-              'Extensions are not allowed to run on Chrome preserved pages.'
-          } else if (isFileProtocol) {
-            tipsVisible = true
-          } else {
-            popText = "Can't work on this page."
+      if (message.tabId === chrome.devtools.inspectedWindow.tabId) {
+        if (message.action === 'inform') {
+          if (
+            message.info === 'onShown' ||
+            message.info === 'onSelectionChanged'
+          ) {
+            // updateAccessToFileURLs()
+            updateTheme()
+          } else if (message.info === 'onNavigated') {
+            popVisible = true
+            popText = 'onNavigated'
+          } else if (message.info === 'frameURLsEmpty') {
+            await updateAccessToURL()
+            popVisible = true
+            if (isGooglePreservedPages) {
+              popText =
+                'Extensions are not allowed to run on Chrome preserved pages.'
+            } else if (isFileProtocol) {
+              tipsVisible = true
+            } else {
+              popText = "Can't work on this page."
+            }
           }
         }
       }
@@ -175,7 +178,7 @@
 
 <main class={className}>
   <div class="title">
-    CSS Used by $0 and its children:
+    <span>CSS Used by $0 and its descendants:</span>
     <button class="plain" on:click={gotoGithubIssue}>issue?</button>
   </div>
   <div class="output">
@@ -261,8 +264,14 @@
     height: 26px;
     font-size: 11px;
   }
+  .title span {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
   .title button {
     z-index: 1;
+    flex: none;
     background: none;
     text-decoration: underline;
     cursor: pointer;

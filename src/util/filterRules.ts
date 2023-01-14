@@ -1,5 +1,5 @@
 // this module is used to filter rules
-// by testing the dom and its children one by one.
+// by testing the dom and its descendants one by one.
 // each testing is wrapped by a settimeout timmer to make it async
 // because the testing can be a long time if too many.
 
@@ -8,9 +8,9 @@ import { cssHelper } from './cssHelper'
 
 // may match accoding to interaction
 const PseudoClass =
-    '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
+    'active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited|focus-within|focus-visible|fullscreen',
   PseudoElement =
-    '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection|resizer|scrollbar(-(button|thumb|corner|track(-piece)?))?))|-ms-(clear|reveal|expand)|-moz-(focusring)|-webkit-(details-marker)|after|before|first-letter|first-line',
+    '((-(webkit|moz)-)?(scrollbar(-(button|thumb|corner|track(-piece)?))?))|-webkit-(details-marker|resizer)|after|before|first-letter|first-line|placeholder|selection',
   MaxPossiblePseudoLength = 30,
   REG0 = new RegExp(
     '^(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+$',
@@ -35,28 +35,19 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
   var keyFramUsed = []
   var fontFaceUsed = []
 
-  var domlist = []
-  domlist.push($0)
-  $0.querySelectorAll('*').forEach((e) => {
-    domlist.push(e)
-  })
+  const descendantsCount = $0.querySelectorAll('*').length
 
   return new Promise(function (resolve, reject) {
     // loop every dom
     objCss.normRule.forEach(function (rule, idx) {
       promises.push(
-        new Promise(function (res) {
+        new Promise(async function (res) {
           var timer = setTimeout(function () {
             if (idx % 1000 === 0) {
-              let nDom = domlist.length - 1
               let nRule = objCss.normRule.length
               chrome.runtime.sendMessage({
                 action: 'inform',
-                info:`The selected dom has ${nDom}${
-                  nDom > 0 ? ' children' : ' child'
-                }.\nPage rules are about ${nRule}.\nTraversing the ${
-                  idx
-                }th rule...`
+                info: `The selected dom has ${descendantsCount} descendants.\nPage rules are about ${nRule}.\nTraversing the ${idx}th rule...`,
               })
             }
 
@@ -79,19 +70,12 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
                 if (sel.length < MaxPossiblePseudoLength && sel.match(REG0)) {
                   selMatched.push(sel)
                 } else {
-                  let count = []
+                  let errorArray = []
                   let replacedSel = sel
                     .replace(REG1, ' * ')
                     .replace(REG2, '(*)')
                     .replace(REG3, '')
-                  // try {
-                  //   if ($0.matches(sel) || $0.querySelectorAll(sel).length !== 0) {
-                  //     selMatched.push(sel);
-                  //   }
-                  // } catch (e) {
-                  //   count.push(sel);
-                  //   count.push(e);
-                  // }
+
                   try {
                     if (
                       $0.matches(replacedSel) ||
@@ -100,18 +84,18 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
                       selMatched.push(sel)
                     }
                   } catch (e) {
-                    count.push(replacedSel)
-                    count.push(e)
+                    errorArray.push({
+                      selector: replacedSel,
+                      error: e,
+                    })
                   }
-                  if (count.length === 4 && debugMode) {
-                    if (count[2] === count[0]) {
-                      count = count.slice(0, 2)
-                    }
-                    console.log(count)
+                  if (debugMode) {
+                    console.warn('selector match error: ', errorArray)
                   }
                 }
               })
               if (selMatched.length !== 0) {
+                // remove duplicate selector
                 var cssText = selMatched
                   .filter(function (v, i, self) {
                     return self.indexOf(v) === i
@@ -122,9 +106,8 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
                 rule.nodes.forEach(function (ele) {
                   if (
                     ele.prop &&
-                    ele.prop.match(
-                      /^(-(webkit|moz|ms|o)-)?animation(-name)?$/i
-                    ) !== null
+                    ele.prop.match(/^(-(webkit|moz)-)?animation(-name)?$/i) !==
+                      null
                   ) {
                     keyFramUsed = keyFramUsed.concat(
                       ele.value.split(/ *, */).map(function (ele) {
@@ -133,16 +116,19 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
                     )
                   }
                 })
-                const fontfamilyOfRule = cssHelper.textToCss(cssText)
-                const cssRule = fontfamilyOfRule.cssRules[0]
-                if (
-                  cssRule &&
-                  cssRule instanceof CSSStyleRule &&
-                  cssRule.style.fontFamily
-                ) {
-                  fontFaceUsed = fontFaceUsed.concat(
-                    cssRule.style.fontFamily.split(', ')
-                  )
+
+                if (rule && rule.nodes) {
+                  for (let index = 0; index < rule.nodes.length; index++) {
+                    const declaration = rule.nodes[index]
+                    if (declaration && declaration.prop === 'font-family') {
+                      fontFaceUsed = [
+                        ...fontFaceUsed,
+                        ...declaration.value
+                          .split(/ *, */)
+                          .filter((e: string) => !!e),
+                      ]
+                    }
+                  }
                 }
                 return
               }
