@@ -104,8 +104,8 @@
   //   chrome.devtools.inspectedWindow.reload()
   // }
 
-  function gotoGithubIssue() {
-    window.open('https://github.com/painty/CSS-Used-ChromeExt/issues')
+  function gotoGithubFAQ() {
+    window.open('https://github.com/painty/CSS-Used-ChromeExt#faq')
   }
 
   let className = ''
@@ -179,7 +179,7 @@
 <main class={className}>
   <div class="title">
     <span>CSS Used by $0 and its descendants:</span>
-    <button class="plain" on:click={gotoGithubIssue}>issue?</button>
+    <button class="plain" on:click={gotoGithubFAQ}>FAQ</button>
   </div>
   <div class="output">
     <textarea
