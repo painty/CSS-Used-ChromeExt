@@ -57,7 +57,7 @@ chrome.devtools.panels.elements.onSelectionChanged.addListener(function () {
     action: 'inform',
     info: 'onSelectionChanged',
     tabId: chrome.devtools.inspectedWindow.tabId,
-  })
+  }).catch(console.log)
 })
 
 chrome.devtools.network.onNavigated.addListener(function () {
