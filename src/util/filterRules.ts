@@ -29,7 +29,7 @@ const PseudoClass =
     'ig'
   )
 
-function filterRules($0: HTMLElement, objCss) {
+function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
   var promises = []
   var matched = []
   var keyFramUsed = []
@@ -42,97 +42,100 @@ function filterRules($0: HTMLElement, objCss) {
     objCss.normRule.forEach(function (rule, idx) {
       promises.push(
         new Promise(async function (res) {
-          if (idx % 1000 === 0) {
-            let nRule = objCss.normRule.length
-            chrome.runtime.sendMessage({
-              action: 'inform',
-              info: `The selected dom has ${descendantsCount} descendants.\nPage rules are about ${nRule}.\nTraversing the ${idx}th rule...`,
-            })
-          }
+          var timer = setTimeout(function () {
+            if (idx % 1000 === 0) {
+              let nRule = objCss.normRule.length
+              chrome.runtime.sendMessage({
+                action: 'inform',
+                info: `The selected dom has ${descendantsCount} descendants.\nPage rules are about ${nRule}.\nTraversing the ${idx}th rule...`,
+              })
+            }
 
-          if (typeof rule === 'string') {
-            res(rule)
-            return
-          } else {
-            var selMatched = []
-            var arrSel = rule.selectors.filter(function (v, i, self) {
-              return self.indexOf(v) === i
-            })
-            arrSel.forEach(function (sel) {
-              if (selMatched.indexOf(sel) !== -1) {
-                return
-              }
-              // these pseudo class/elements can apply to any ele
-              // but wont apply now
-              // eg. :active{xxx}
-              // only works when clicked on and actived
-              if (sel.length < MaxPossiblePseudoLength && sel.match(REG0)) {
-                selMatched.push(sel)
-              } else {
-                let errorArray = []
-                let replacedSel = sel
-                  .replace(REG1, ' * ')
-                  .replace(REG2, '(*)')
-                  .replace(REG3, '')
+            if (typeof rule === 'string') {
+              res(rule)
+              return
+            } else {
+              var selMatched = []
+              var arrSel = rule.selectors.filter(function (v, i, self) {
+                return self.indexOf(v) === i
+              })
+              arrSel.forEach(function (sel) {
+                if (selMatched.indexOf(sel) !== -1) {
+                  return
+                }
+                // these pseudo class/elements can apply to any ele
+                // but wont apply now
+                // eg. :active{xxx}
+                // only works when clicked on and actived
+                if (sel.length < MaxPossiblePseudoLength && sel.match(REG0)) {
+                  selMatched.push(sel)
+                } else {
+                  let errorArray = []
+                  let replacedSel = sel
+                    .replace(REG1, ' * ')
+                    .replace(REG2, '(*)')
+                    .replace(REG3, '')
 
-                try {
-                  if (
-                    $0.matches(replacedSel) ||
-                    $0.querySelectorAll(replacedSel).length !== 0
-                  ) {
-                    selMatched.push(sel)
-                  }
-                } catch (e) {
-                  errorArray.push({
-                    selector: replacedSel,
-                    error: e,
-                  })
-                }
-                if (debugMode) {
-                  console.warn('selector match error: ', errorArray)
-                }
-              }
-            })
-            if (selMatched.length !== 0) {
-              // remove duplicate selector
-              var cssText = selMatched
-                .filter(function (v, i, self) {
-                  return self.indexOf(v) === i
-                })
-                .join(',')
-              cssText += '{' + cssHelper.normRuleNodeToText(rule) + '}'
-              res(cssText)
-              rule.nodes.forEach(function (ele) {
-                if (
-                  ele.prop &&
-                  ele.prop.match(/^(-(webkit|moz)-)?animation(-name)?$/i) !==
-                    null
-                ) {
-                  keyFramUsed = keyFramUsed.concat(
-                    ele.value.split(/ *, */).map(function (ele) {
-                      return ele.split(' ')[0]
+                  try {
+                    if (
+                      $0.matches(replacedSel) ||
+                      $0.querySelectorAll(replacedSel).length !== 0
+                    ) {
+                      selMatched.push(sel)
+                    }
+                  } catch (e) {
+                    errorArray.push({
+                      selector: replacedSel,
+                      error: e,
                     })
-                  )
+                  }
+                  if (debugMode) {
+                    console.warn('selector match error: ', errorArray)
+                  }
                 }
               })
+              if (selMatched.length !== 0) {
+                // remove duplicate selector
+                var cssText = selMatched
+                  .filter(function (v, i, self) {
+                    return self.indexOf(v) === i
+                  })
+                  .join(',')
+                cssText += '{' + cssHelper.normRuleNodeToText(rule) + '}'
+                res(cssText)
+                rule.nodes.forEach(function (ele) {
+                  if (
+                    ele.prop &&
+                    ele.prop.match(/^(-(webkit|moz)-)?animation(-name)?$/i) !==
+                      null
+                  ) {
+                    keyFramUsed = keyFramUsed.concat(
+                      ele.value.split(/ *, */).map(function (ele) {
+                        return ele.split(' ')[0]
+                      })
+                    )
+                  }
+                })
 
-              if (rule && rule.nodes) {
-                for (let index = 0; index < rule.nodes.length; index++) {
-                  const declaration = rule.nodes[index]
-                  if (declaration && declaration.prop === 'font-family') {
-                    fontFaceUsed = [
-                      ...fontFaceUsed,
-                      ...declaration.value
-                        .split(/ *, */)
-                        .filter((e: string) => !!e),
-                    ]
+                if (rule && rule.nodes) {
+                  for (let index = 0; index < rule.nodes.length; index++) {
+                    const declaration = rule.nodes[index]
+                    if (declaration && declaration.prop === 'font-family') {
+                      fontFaceUsed = [
+                        ...fontFaceUsed,
+                        ...declaration.value
+                          .split(/ *, */)
+                          .filter((e: string) => !!e),
+                      ]
+                    }
                   }
                 }
+                return
               }
-              return
             }
-          }
-          res('')
+            res('')
+          }, 0)
+          taskTimerRecord.push(timer)
         })
       )
     })

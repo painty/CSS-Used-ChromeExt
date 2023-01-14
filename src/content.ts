@@ -8,9 +8,16 @@ import generateRulesAll from './util/generateRulesAll'
 type cssNodeObj = Awaited<ReturnType<typeof convTextToRules>>
 
 const externalCssCache: { [index: string]: cssNodeObj } = {}
-
+//to store timers of testing if a html element matches a rule selector.
+const arrTimerOfTestingIfMatched: ReturnType<typeof setTimeout>[] = []
 let doc = document
 function getC($0: HTMLElement) {
+  arrTimerOfTestingIfMatched.forEach(function (ele) {
+    clearTimeout(ele)
+  })
+  // reset to empty
+  arrTimerOfTestingIfMatched.length = 0
+
   if (
     $0 === null ||
     typeof $0 === 'undefined' ||
@@ -102,7 +109,7 @@ function getC($0: HTMLElement) {
     })
     .then(function (objCss) {
       // {fontFace : Array, keyFram : Array, normRule : Array}
-      return filterRules($0, objCss)
+      return filterRules($0, objCss, arrTimerOfTestingIfMatched)
     })
     .then(function (data) {
       chrome.runtime.sendMessage({
