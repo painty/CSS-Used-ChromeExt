@@ -191,20 +191,16 @@
     />
   </div>
   <div class="operate">
-    <button on:click={copyResult} disabled={strCss === ''} id="copy" class="btn"
+    <button on:click={copyResult} disabled={strCss === ''} class="copy"
       >{btnCopyText}</button
     >
-    <button on:click={preview} disabled={strCss === ''} class="btn"
-      >Preview</button
-    >
+    <button on:click={preview} disabled={strCss === ''}>Preview</button>
     <form action="https://codepen.io/pen/define" method="POST" target="_blank">
-      <input type="hidden" name="data" value={dataForCodepen} />
+      <input type="hidden" name="data" value={JSON.stringify(dataForCodepen)} />
       <button
         disabled={strCss === ''}
         title="Send snippet to CodePen"
-        type="submit"
-        value=""
-        class="btn">CodePen</button
+        type="submit">CodePen</button
       >
     </form>
   </div>
@@ -297,9 +293,48 @@
     resize: none;
     overflow: auto;
   }
+  button {
+    position: relative;
+    font-size: 12px;
+    display: block;
+    margin-right: 10px;
+    margin: 2px;
+    height: 24px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 0px 12px;
+    font-weight: 500;
+    color: #1a73e8;
+    background-color: #fff;
+    flex: none;
+    white-space: nowrap;
+    height: 28px;
+    margin: 8px 16px 8px 0;
+  }
   button[disabled] {
     filter: grayscale(1) opacity(0.5);
   }
+  button:not([disabled]):hover {
+    background-color: #f3f3f3;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  button.plain {
+    background: none;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0.3em 0.6em;
+    border-radius: 4px;
+  }
+
+  button.copy {
+    background-color: #1a73e8;
+    border: none;
+    color: #fff;
+  }
+  button.copy:not([disabled]):hover {
+    background-color: #3b86e8;
+  }
+
   /* ::selection {
     background: #cfe8fc;
   } */
@@ -323,40 +358,12 @@
   .pop p {
     margin: auto;
   }
-  button.plain {
-    background: none;
-    text-decoration: underline;
-    cursor: pointer;
-    padding: 0.3em 0.6em;
-    border-radius: 4px;
-  }
+
   .pop .info {
     padding-left: 10px;
   }
   .pop .info pre {
     white-space: break-spaces;
-  }
-  .btn {
-    position: relative;
-    font-size: 12px;
-    display: block;
-    margin-right: 10px;
-    margin: 2px;
-    height: 24px;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-    padding: 0px 12px;
-    font-weight: 500;
-    color: #1a73e8;
-    background-color: #fff;
-    flex: none;
-    white-space: nowrap;
-    height: 28px;
-    margin: 8px 16px 8px 0;
-  }
-  .btn:not([disabled]):hover {
-    background-color: #f3f3f3;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
   form {
@@ -373,6 +380,7 @@
     margin-left: 10px;
     flex-wrap: wrap;
   }
+
   .theme-dark {
     color: rgba(255, 255, 255, 0.87);
     background-color: #242424;
@@ -424,20 +432,12 @@
   .theme-dark .pop button.plain:not([disabled]):hover {
     color: #cccccc;
   }
-  #copy {
-    background-color: #1a73e8;
-    border: none;
-    color: #fff;
-  }
-  #copy:not([disabled]):hover {
-    background-color: #3b86e8;
-  }
-  .theme-dark #copy {
+  .theme-dark button.copy {
     background-color: #0e639c;
     border: none;
     color: #fff;
   }
-  .theme-dark #copy:not([disabled]):hover {
+  .theme-dark button.copy:not([disabled]):hover {
     background-color: #1177bb;
   }
 </style>
