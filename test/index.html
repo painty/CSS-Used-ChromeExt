@@ -38,21 +38,21 @@
           '//' +
           location.host +
           location.pathname
-        ).replace(/\/index\.html$/, '')
+        ).replace(/\/index\.html$/, '/')
         document.querySelector(
           '#expected'
-        ).value = `/*! CSS Used from: ${prefix}/css/index.css */
-/*! @import ${prefix}/css/base.css screen, projection */
+        ).value = `/*! CSS Used from: ${prefix}css/index.css */
+/*! @import ${prefix}css/base.css screen, projection */
 @media screen, projection{
 body{background:#ccc;}
 }
 /*! end @import */
-/*! @import ${prefix}/css/base2.css screen and (orientation:portrait) */
+/*! @import ${prefix}css/base2.css screen and (orientation:portrait) */
 @media screen and (orientation:portrait){
 body{background:#aaa;}
 }
 /*! end @import */
-/*! @import ${prefix}/css/skin.css */
+/*! @import ${prefix}css/skin.css */
 .S_spetxt{color:#fa7d3c;}
 body{background-color:#b4d66b;background-image:none;}
 body{color:#333;text-decoration:none;}
@@ -60,7 +60,7 @@ a{color:#76a513;}
 /*! end @import */
 :AFTER{content:'after';background:#38c;color:#fff;font-size:12px;opacity:0.1;}
 html{height:100%;}
-A{background:url(${prefix}/img/logo.jpg);background-size:100%;animation:teatnamekey;}
+A{background:url(${prefix}img/logo.jpg);background-size:100%;animation:teatnamekey;}
 @media screen and (min-width:500px){
 a{width:16.666%;}
 }
@@ -74,7 +74,7 @@ body{font-family:"Cutive Mono";}
 @media print{
 i{font-size:10pt;}
 }
-/*! CSS Used from: ${prefix}/css/font.css */
+/*! CSS Used from: ${prefix}css/font.css */
 i{font-family:'Cutive Mono';}
 @media only screen and (max-width:480px){
 b{font-size:20px;}
