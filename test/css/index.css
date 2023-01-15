@@ -8,7 +8,8 @@
   background: #38c;
   color: #fff;
   font-size: 12px;
-  opacity: 0.1;
+  opacity: 0;
+  pointer-events: none;
 }
 
 html {
@@ -80,7 +81,27 @@ body {
 .font-style {
   font-family: 'Cutive Mono',  icon-font,      Inter, Avenir,   Helvetica  , Arial, sans-serif  ;
 }
-
+.svg-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='rgba(0,0,0,.54)' d='M20.49 19l-5.73-5.73C15.53 12.2 16 10.91 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.41 0 2.7-.47 3.77-1.24L19 20.49 20.49 19zM5 9.5C5 7.01 7.01 5 9.5 5S14 7.01 14 9.5 11.99 14 9.5 14 5 11.99 5 9.5z'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 20px;
+  height: 20px;
+  padding: 10px;
+  width: 20px;
+  font-size:0;
+}
+.not-focus{
+  width: 50px;
+  height: 50px;
+  border: 1px solid #000;
+}
+.not-focus:not(:focus){
+  background: rgb(10, 149, 86);
+}
+.not-focus:focus{
+  background: rgb(158, 51, 204);
+}
 @media print {
   i {
     font-size: 10pt;

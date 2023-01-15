@@ -1,9 +1,9 @@
 import filterRules from './util/filterRules'
 import convLinkToText from './util/convLinkToText'
-import convUrlToAbs from './util/convUrlToAbs'
 import convTextToRules from './util/convTextToRules'
 import postTideCss from './util/postTideCss'
 import generateRulesAll from './util/generateRulesAll'
+import cleanHTML from './util/cleanHTML'
 
 type cssNodeObj = Awaited<ReturnType<typeof convTextToRules>>
 
@@ -116,25 +116,7 @@ async function getC($0: HTMLElement) {
       chrome.runtime.sendMessage({
         action: 'celebrate',
         css: postTideCss(data),
-        html: $0.outerHTML
-          .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-          .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
-          .replace(/<link[\s\S]*?>/gi, '')
-          .replace(/(<img[^>]+src=(['"]))(.*?)(\2.*?>)/g, function () {
-            var src = convUrlToAbs(doc.location.href, arguments[3])
-            return arguments[1] + src + arguments[4]
-          })
-          .replace(/(<img[^>]+srcset=(['"]))(.*?)(\2.*?>)/g, function () {
-            var srcset = arguments[3].split(/,\s*/)
-            srcset.forEach(function (ele, index) {
-              var src = ele.replace(/([^ ]*)(.*)/, function () {
-                var _src = convUrlToAbs(doc.location.href, arguments[1])
-                return _src + ' ' + arguments[2]
-              })
-              srcset[index] = src
-            })
-            return arguments[1] + srcset.join(',') + arguments[4]
-          }),
+        html: cleanHTML($0.outerHTML, doc),
       })
     })
 }
