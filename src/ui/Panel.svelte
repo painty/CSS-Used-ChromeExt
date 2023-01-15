@@ -323,6 +323,7 @@
     cursor: pointer;
     padding: 0.3em 0.6em;
     border-radius: 4px;
+    border: none;
   }
 
   button.copy {
