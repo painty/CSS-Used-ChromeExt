@@ -49,7 +49,7 @@ function generateRulesAll(
             html = html.replace(
               /url\((['"]?)(.*?)\1\)/g,
               function (_a, _p1, p2) {
-                return "url(" + convUrlToAbs(doc.location.href, p2) + ")";
+                return "url(\"" + convUrlToAbs(doc.location.href, p2) + "\")";
               }
             );
             // the next operation is asynchronous
