@@ -40,9 +40,9 @@ function evalGetCssUsed(cancel = false) {
         },
         function (result, isException) {
           if (isException) {
-            // showMessage("isException:",isException);
+            console.log("evalGetCssUsed isException: ",isException);
           } else {
-            // console.log(result);
+            // console.log('evalGetCssUsed result: ',result);
           }
         }
       )

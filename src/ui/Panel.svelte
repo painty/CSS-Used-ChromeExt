@@ -35,7 +35,6 @@
         /^(chrome|https:\/\/chrome\.google\.com\/webstore)/
       ) !== null
     ) {
-      // showMessage('This page is protected by Chrome.<br>Try another page.')
       isGooglePreservedPages = true
     } else {
       isGooglePreservedPages = false

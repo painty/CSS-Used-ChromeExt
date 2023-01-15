@@ -8,11 +8,11 @@ import convTextToRules from './convTextToRules'
 
 const cssHelper = {
   mergeobjCss: function (a: cssObj, b: cssObj) {
-    ;['normRule', 'fontFace', 'keyFram'].forEach(function (ele) {
+    ['normRule', 'fontFace', 'keyFram'].forEach(function (ele) {
       if (!a[ele] || !b[ele]) {
         // console.log('NO '+ele);
       }
-      a[ele] = a[ele].concat(b[ele])
+      a[ele] = a[ele].concat(b[ele]).filter(e=>e)
     })
   },
   normRuleNodeToText: function (node) {

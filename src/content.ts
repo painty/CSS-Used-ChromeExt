@@ -11,7 +11,7 @@ const externalCssCache: { [index: string]: cssNodeObj } = {}
 //to store timers of testing if a html element matches a rule selector.
 const arrTimerOfTestingIfMatched: ReturnType<typeof setTimeout>[] = []
 let doc = document
-function getC($0: HTMLElement) {
+async function getC($0: HTMLElement) {
   arrTimerOfTestingIfMatched.forEach(function (ele) {
     clearTimeout(ele)
   })
@@ -24,20 +24,22 @@ function getC($0: HTMLElement) {
     typeof $0.nodeName === 'undefined'
   ) {
     return
-  } else {
-    if ($0.nodeName.match(/^<pseudo:/)) {
-      chrome.runtime.sendMessage({
-        action: 'inform',
-        info: "It's a pseudo element",
-      })
-      return
-    } else if ($0.nodeName === 'html' || $0.nodeName.match(/^#/)) {
-      chrome.runtime.sendMessage({
-        action: 'inform',
-        info: 'Not for this element',
-      })
-      return
-    }
+  }
+
+  if ($0.nodeName.match(/^<pseudo:/)) {
+    chrome.runtime.sendMessage({
+      action: 'inform',
+      info: "It's a pseudo element",
+    })
+    return
+  }
+
+  if ($0.nodeName === 'html' || $0.nodeName.match(/^#/)) {
+    chrome.runtime.sendMessage({
+      action: 'inform',
+      info: 'Not for this element',
+    })
+    return
   }
 
   let isInSameOrigin = true
@@ -45,7 +47,6 @@ function getC($0: HTMLElement) {
     $0.ownerDocument.defaultView.parent.document
   } catch (e) {
     isInSameOrigin = false
-    // console.log(e);
   }
 
   if (isInSameOrigin) {
@@ -138,11 +139,13 @@ function getC($0: HTMLElement) {
     })
 }
 
-chrome.runtime.sendMessage({
-  action: 'evalGetCssUsed',
-  info: 'page loaded',
-}).catch(()=>{
-  // console.log('error',error);
-})
+chrome.runtime
+  .sendMessage({
+    action: 'evalGetCssUsed',
+    info: 'page loaded',
+  })
+  .catch(() => {
+    // console.log('error',error);
+  })
 
 export default getC

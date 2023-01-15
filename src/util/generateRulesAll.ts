@@ -30,11 +30,7 @@ function generateRulesAll(
             // can be link tag
             cssNodeArr = externalCssCache[styleSheet.href];
             cssNodeArr.media = doc.styleSheets[x].media;
-            traversalCSSRuleList(doc, externalCssCache, cssNodeArr).then(
-              function (obj) {
-                res(obj);
-              }
-            );
+            traversalCSSRuleList(doc, externalCssCache, cssNodeArr).then(res);
           } else if(styleSheet.ownerNode instanceof Element) {
             // style tag
             let html: string = styleSheet.ownerNode.innerHTML;
@@ -59,16 +55,13 @@ function generateRulesAll(
             // the next operation is asynchronous
             // store the current x value
             let _x = x;
-            convTextToRules(html, doc.location.href).then(function (
-              cssNodeArr
-            ) {
-              cssNodeArr.media = doc.styleSheets[_x].media;
-              traversalCSSRuleList(doc, externalCssCache, cssNodeArr).then(
-                function (obj) {
-                  res(obj);
-                }
-              );
+            convTextToRules(html, doc.location.href).then(cssNodeObj=>{
+              cssNodeObj.media = doc.styleSheets[_x].media;
+              traversalCSSRuleList(doc, externalCssCache, cssNodeObj).then(res);
             });
+          }else{
+            // console.log('ProcessingInstruction', styleSheet.ownerNode);
+            res({})
           }
         })
       );
