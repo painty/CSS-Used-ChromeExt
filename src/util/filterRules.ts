@@ -75,6 +75,7 @@ function filterRules($0: HTMLElement, objCss, taskTimerRecord) {
                     .replace(REG1, ' * ')
                     .replace(REG2, '(*)')
                     .replace(REG3, '')
+                    .replace(/:not\(\*\)/ig, '')
 
                   try {
                     if (
