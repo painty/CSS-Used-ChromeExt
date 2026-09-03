@@ -23,6 +23,19 @@ interface customCssObj {
   cssraw: string
 }
 
+// Tenta obter o CSS diretamente via fetch.
+// Mesma origem: funciona sempre. Cross-origin: funciona se o CORS permitir.
+// Devolve null quando não é possível, para acionar o fallback.
+async function fetchDirect(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { credentials: 'include' })
+    if (!res.ok) return null
+    return await res.text()
+  } catch (e) {
+    return null
+  }
+}
+
 function makeRequest(url: string): Promise<customCssObj> {
   const result: customCssObj = { url, cssraw: '' }
   chrome.runtime.sendMessage({
@@ -30,10 +43,11 @@ function makeRequest(url: string): Promise<customCssObj> {
     info: 'Getting : ' + url,
   })
   return new Promise(function (resolve) {
-    getFileContent(url)
+    // 1) fetch direto  →  2) fallback ao getFileContent (devtools getResources)
+    fetchDirect(url)
+      .then((direct) => (direct !== null ? direct : getFileContent(url)))
       .then((data) => {
-        result.cssraw = data
-        // console.log("Success:", url, data);
+        result.cssraw = data || ''
         getSavedSettings().then((willConvUrlToAbs) => {
           if (willConvUrlToAbs) {
             result.cssraw = result.cssraw.replace(

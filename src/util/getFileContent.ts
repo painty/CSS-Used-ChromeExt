@@ -6,7 +6,7 @@ const getByFetch = (url: string): Promise<string> => {
       method: 'GET',
       mode: 'no-cors',
     })
-      .then((resonse) => resonse.arrayBuffer())
+      .then((response) => response.arrayBuffer())
       .then((data) => {
         const decoder = new TextDecoder()
         resolve(decoder.decode(data))
@@ -16,17 +16,30 @@ const getByFetch = (url: string): Promise<string> => {
 }
 
 const getByChromeAPI = (url: string): Promise<string> => {
-  return new Promise((resolve, _reject) => {
-    chrome.runtime.sendMessage(
-      {
-        action: 'getResourceContent',
-        url,
-      },
-      (response) => {
-        // console.log('response',response);
-        resolve(response.content)
-      }
-    )
+  return new Promise((resolve) => {
+    try {
+      chrome.runtime.sendMessage(
+        {
+          action: 'getResourceContent',
+          url,
+        },
+        (response) => {
+          // consome o erro para não borbulhar "Could not establish connection"
+          if (chrome.runtime.lastError) {
+            resolve('')
+            return
+          }
+          // resposta ausente/nula → devolve folha vazia em vez de rebentar
+          if (!response || response.content == null) {
+            resolve('')
+            return
+          }
+          resolve(response.content)
+        }
+      )
+    } catch (e) {
+      resolve('')
+    }
   })
 }
 
