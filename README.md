@@ -36,7 +36,7 @@ You can click "Preview" to see the selected part with clean style rules.
 1. Not all the CSS is got
 
     1. The result is generated based on the CURRENT HTML DOM. If a div doesn't exist in the document unless a specific user interaction, the result may miss out the style rules for the newly born div.
-    1. CSS custom properties (variables) are partially supported. Not working for declarations defined by $0's ancestor. Thinking it as a inheritable CSS property, as this tool won't handle inherit style.
+    1. CSS custom properties (variables) defined on `:root` or any ancestor are now included when they are used by the kept rules (with transitive `var()` dependency resolution). Shadow DOM styles (`:host`, `::part`, `::slotted`, `adoptedStyleSheets`) and modern at-rules (`@supports`, `@container`, `@layer`, `@property`) are supported. Inline `style="..."` attributes are reported in a dedicated section.
 
 ## Changelog
 

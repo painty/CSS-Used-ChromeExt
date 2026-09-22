@@ -1,3 +1,18 @@
+**ver 3.1.0 | 22/09/2026**
+
+1. Fix. Restore compatibility with Chrome 152+ resource loading: resource matching now ignores query strings/fragments, `getContent()` is guarded, and `sendResponse` is always called (hardens [#60](https://github.com/painty/CSS-Used-ChromeExt/pull/60)).
+1. Fix. Stylesheets are now read from the browser CSSOM first — exactly the CSS the browser applies, including rules injected dynamically (`insertRule`, CSS-in-JS) — before falling back to `fetch` and then to the DevTools `getResources()` round-trip.
+1. Fix. `getByChromeAPI` checks `chrome.runtime.lastError` and null responses, resolving to an empty string instead of crashing.
+1. Fix. Stylesheets loaded twice (the `media="print" onload` async-loading trick, or critical-CSS inlining duplicating the external sheet) are deduplicated.
+1. New. Shadow DOM support: stylesheets inside shadow roots and `adoptedStyleSheets` (constructable stylesheets) are collected; `:host`, `:host-context()`, `::slotted()` and `::part()` selectors are matched against the shadow hosts, including nested parentheses (e.g. `:host(.is-desktop:not(.is-mobile))`).
+1. New. Modern at-rules: `@supports`, `@container`, `@scope` and `@layer` (block form) are traversed like `@media`; `@property` rules are included when the corresponding custom property is used.
+1. New. Custom properties defined on `:root`/`[data-mode]` (or any non-matching selector) are now included when used by the kept rules, with transitive `var()` dependency closure — fixes themes built on CSS variables, including space-toggle dark-mode setups.
+1. New. Base inherited styles (`html`/`:root`/`body` typography, color, etc.) are reported in a dedicated section, since they apply to the selection by inheritance.
+1. New. Inline styles (`style="..."`) of the selected DOM and its descendants (light DOM and shadow roots) are reported.
+1. New. Automatic refresh when stylesheets are added/removed (SPA lazy-loading, HMR, CSS-in-JS), with cache invalidation for removed `<link>`s.
+1. New. Fallback content-script injection via `chrome.scripting` when the page was opened before the extension was installed/updated.
+1. Improved. Filtering performance: rules are processed in chunks (one timer per 200 rules instead of one timer + one promise per rule), keeping the UI responsive and remaining cancellable.
+
 **ver 3.0.0 | 15/01/2023**
 
 1. Migrated to Manifest V3.
