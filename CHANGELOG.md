@@ -1,6 +1,7 @@
 **ver 3.1.0 | 22/09/2026**
 
 1. Fix. Restore compatibility with Chrome 152+ resource loading: resource matching now ignores query strings/fragments, `getContent()` is guarded, and `sendResponse` is always called (hardens [#60](https://github.com/painty/CSS-Used-ChromeExt/pull/60)).
+1. Fix. Cross-origin stylesheets served by CDNs answering `Access-Control-Allow-Origin: *` are now fetched with `credentials: 'omit'` first — credentialed requests are rejected by the CORS spec in that case, which previously broke the direct fetch fallback.
 1. Fix. Stylesheets are now read from the browser CSSOM first — exactly the CSS the browser applies, including rules injected dynamically (`insertRule`, CSS-in-JS) — before falling back to `fetch` and then to the DevTools `getResources()` round-trip.
 1. Fix. `getByChromeAPI` checks `chrome.runtime.lastError` and null responses, resolving to an empty string instead of crashing.
 1. Fix. Stylesheets loaded twice (the `media="print" onload` async-loading trick, or critical-CSS inlining duplicating the external sheet) are deduplicated.

@@ -24,17 +24,27 @@ interface customCssObj {
   cssraw: string
 }
 
-// Tenta obter o CSS diretamente via fetch.
-// Mesma origem: funciona sempre. Cross-origin: funciona se o CORS permitir.
-// Devolve null quando não é possível, para acionar o fallback.
+// Try to get the CSS directly via fetch.
+// Same-origin: always works. Cross-origin: works if CORS allows it.
+// Returns null when not possible, to trigger the fallback.
 async function fetchDirect(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url, { credentials: 'include' })
-    if (!res.ok) return null
-    return await res.text()
-  } catch (e) {
-    return null
+  // 1) credentials:'omit' — works with CDNs answering
+  //    `Access-Control-Allow-Origin: *`, which REJECT credentialed
+  //    requests (ACAO:* + credentials is forbidden by the CORS spec)
+  // 2) credentials:'include' — for same-origin/CDNs that require
+  //    cookies to serve the real (non-anonymous) stylesheet
+  const modes: RequestCredentials[] = ['omit', 'include']
+  for (const credentials of modes) {
+    try {
+      const res = await fetch(url, { credentials })
+      if (res.ok) {
+        return await res.text()
+      }
+    } catch (e) {
+      // try next mode / fall through to the caller's fallback
+    }
   }
+  return null
 }
 
 function makeRequest(url: string): Promise<customCssObj> {
