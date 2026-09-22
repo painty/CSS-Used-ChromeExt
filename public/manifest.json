@@ -1,8 +1,13 @@
 {
   "name": "CSS Used",
-  "version": "3.0.0",
-  "permissions": ["tabs"],
-  "optional_permissions": ["storage"],
+  "version": "3.1.0",
+  "permissions": [
+    "tabs",
+    "scripting"
+  ],
+  "optional_permissions": [
+    "storage"
+  ],
   "author": "Bob",
   "icons": {
     "16": "static/icon/16.png",
@@ -15,8 +20,12 @@
   "manifest_version": 3,
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["assets/content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "assets/content.js"
+      ],
       "all_frames": true
     }
   ],

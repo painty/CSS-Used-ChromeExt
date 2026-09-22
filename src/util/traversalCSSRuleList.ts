@@ -17,6 +17,7 @@ function traversalCSSRuleList(
     normRule: [],
     keyFram: [],
     fontFace: [],
+    propRule: [],
   }
 
   return new Promise(function (resolve, reject) {
@@ -38,13 +39,14 @@ function traversalCSSRuleList(
     }
 
     for (var i = 0; i < cssNodeObj.nodes.length; i++) {
-      ;(function (CSSRuleListItem, i) {
+      ; (function (CSSRuleListItem, i) {
         promises.push(
           new Promise(function (res) {
             var _objCss = {
               normRule: [],
               keyFram: [],
               fontFace: [],
+              propRule: [],
             }
             if (
               CSSRuleListItem.type === 'atrule' &&
@@ -70,6 +72,41 @@ function traversalCSSRuleList(
               }).then(function (obj) {
                 _objCss.normRule.push(
                   '\n@media ' + CSSRuleListItem.params + '{'
+                )
+                cssHelper.mergeobjCss(_objCss, obj)
+                _objCss.normRule.push('}')
+                res(_objCss)
+              })
+            } else if (
+              CSSRuleListItem.type === 'atrule' &&
+              CSSRuleListItem.name === 'property'
+            ) {
+              // CSSPropertyRule — @property (custom properties typées,
+              // utilisées notamment par Tailwind v4)
+              _objCss.propRule.push(CSSRuleListItem)
+              res(_objCss)
+            } else if (
+              CSSRuleListItem.type === 'atrule' &&
+              (CSSRuleListItem.name === 'supports' ||
+                CSSRuleListItem.name === 'container' ||
+                CSSRuleListItem.name === 'scope' ||
+                (CSSRuleListItem.name === 'layer' &&
+                  CSSRuleListItem.nodes &&
+                  CSSRuleListItem.nodes.length > 0))
+            ) {
+              // @supports / @container / @scope / @layer (forme bloc) :
+              // traverser les règles enfants comme pour @media.
+              // (la forme statement `@layer a, b;` n'a pas de nodes et est ignorée)
+              traversalCSSRuleList(doc, externalCssCache, {
+                nodes: CSSRuleListItem.nodes,
+              }).then(function (obj) {
+                _objCss.normRule.push(
+                  '\n@' +
+                  CSSRuleListItem.name +
+                  (CSSRuleListItem.params
+                    ? ' ' + CSSRuleListItem.params
+                    : '') +
+                  '{'
                 )
                 cssHelper.mergeobjCss(_objCss, obj)
                 _objCss.normRule.push('}')

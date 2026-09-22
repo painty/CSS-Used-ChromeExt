@@ -4,6 +4,7 @@ import convTextToRules from './util/convTextToRules'
 import postTideCss from './util/postTideCss'
 import generateRulesAll from './util/generateRulesAll'
 import cleanHTML from './util/cleanHTML'
+import collectInlineStyles from './util/collectInlineStyles'
 
 type cssNodeObj = Awaited<ReturnType<typeof convTextToRules>>
 
@@ -11,6 +12,8 @@ const externalCssCache: { [index: string]: cssNodeObj } = {}
 //to store timers of testing if a html element matches a rule selector.
 const arrTimerOfTestingIfMatched: ReturnType<typeof setTimeout>[] = []
 let doc = document
+// dernier élément analysé (P6 : refresh auto quand les styles changent)
+let last$0: HTMLElement | null = null
 async function getC($0: HTMLElement) {
   arrTimerOfTestingIfMatched.forEach(function (ele) {
     clearTimeout(ele)
@@ -23,6 +26,8 @@ async function getC($0: HTMLElement) {
     typeof $0 === 'undefined' ||
     typeof $0.nodeName === 'undefined'
   ) {
+    // appel sans argument (panel caché) : stopper aussi le refresh auto
+    last$0 = null
     return
   }
 
@@ -64,6 +69,7 @@ async function getC($0: HTMLElement) {
 
   // console.log('NOT return,begin');
   doc = $0.ownerDocument
+  last$0 = $0
 
   const links: string[] = []
 
@@ -74,7 +80,9 @@ async function getC($0: HTMLElement) {
       const current = externalCssCache[ele.href]
       if (
         ele.getAttribute('href') &&
-        (current === undefined || current.nodes.length === 0)
+        (current === undefined || current.nodes.length === 0) &&
+        // astuce media="print" + fallback : deux <link> pour le même href
+        links.indexOf(ele.href) === -1
       ) {
         links.push(ele.href)
       }
@@ -106,19 +114,74 @@ async function getC($0: HTMLElement) {
       }
     })
     .then(function () {
-      return generateRulesAll(doc, externalCssCache)
+      return generateRulesAll(doc, externalCssCache, $0)
     })
     .then(function (objCss) {
       // {fontFace : Array, keyFram : Array, normRule : Array}
       return filterRules($0, objCss, arrTimerOfTestingIfMatched)
     })
-    .then(function (data) {
-      chrome.runtime.sendMessage({
-        action: 'celebrate',
-        css: postTideCss(data),
-        html: cleanHTML($0.outerHTML, doc),
-      })
+    .then(function (data: string[]) {
+      // P5 : styles inline (style="...") de $0 et de ses descendants —
+      // massivement utilisés par Angular ([style.x] / style bindings)
+      const inlineStyles = collectInlineStyles($0)
+      if (inlineStyles.length > 0) {
+        data = data.concat(['/*! CSS Used inline styles */'], inlineStyles)
+      }
+      chrome.runtime
+        .sendMessage({
+          action: 'celebrate',
+          css: postTideCss(data),
+          html: cleanHTML($0.outerHTML, doc),
+        })
+        .catch(() => {
+          // pas de récepteur (panel fermé) : ignorer
+        })
     })
+}
+
+// P6 : refresh automatique quand les feuilles de la page changent
+// (SPA : lazy-loading de styles Angular, HMR, CSS-in-JS) et
+// invalidation du cache pour les <link> supprimés.
+let styleChangeTimer: ReturnType<typeof setTimeout> | null = null
+const styleObserver = new MutationObserver(function (mutations) {
+  let styleChanged = false
+  mutations.forEach(function (m) {
+    m.addedNodes.forEach(function (node) {
+      if (
+        node instanceof Element &&
+        (node.tagName === 'LINK' || node.tagName === 'STYLE')
+      ) {
+        styleChanged = true
+      }
+    })
+    m.removedNodes.forEach(function (node) {
+      if (
+        node instanceof Element &&
+        (node.tagName === 'LINK' || node.tagName === 'STYLE')
+      ) {
+        styleChanged = true
+        if (node instanceof HTMLLinkElement && node.href) {
+          delete externalCssCache[node.href]
+        }
+      }
+    })
+  })
+  if (!styleChanged) {
+    return
+  }
+  if (styleChangeTimer !== null) {
+    clearTimeout(styleChangeTimer)
+  }
+  styleChangeTimer = setTimeout(function () {
+    styleChangeTimer = null
+    const target = last$0
+    if (target && target.isConnected) {
+      getC(target)
+    }
+  }, 800)
+})
+if (document.head) {
+  styleObserver.observe(document.head, { childList: true, subtree: true })
 }
 
 chrome.runtime
@@ -129,5 +192,9 @@ chrome.runtime
   .catch(() => {
     // console.log('error',error);
   })
+
+  // expõe getC como global 'getCssUsed' no mundo do content script,
+  // para o devtools.js poder chamar via inspectedWindow.eval(...)
+  ; (globalThis as any).getCssUsed = getC
 
 export default getC

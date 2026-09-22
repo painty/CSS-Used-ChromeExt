@@ -1,48 +1,83 @@
 import traversalCSSRuleList from './traversalCSSRuleList'
 import convTextToRules from './convTextToRules'
+import convLinkToText from './convLinkToText'
 import { cssHelper } from './cssHelper'
 import convUrlToAbs from './convUrlToAbs'
+import { getCssRulesText } from './getCssRulesText'
+import { collectStyleSheets } from './collectStyleSheets'
 
 type cssNodeObj = Awaited<ReturnType<typeof convTextToRules>>
 
 function generateRulesAll(
   doc: Document,
-  externalCssCache: { [index: cssNodeObj['href']]: cssNodeObj }
+  externalCssCache: { [index: cssNodeObj['href']]: cssNodeObj },
+  ele?: Element
 ) {
-  var x: number
-
   var objCss = {
     normRule: [],
     fontFace: [],
     keyFram: [],
+    propRule: [],
   }
 
   var promises = []
 
   return new Promise(function (resolve, reject) {
-    // loop every styleSheets
-    for (x = 0; x < doc.styleSheets.length; x++) {
-      const styleSheet = doc.styleSheets[x]
+    // toutes les feuilles atteignables : document + adoptedStyleSheets
+    // + shadow roots (P3) — pas seulement doc.styleSheets
+    const sheets = collectStyleSheets(doc, ele)
+    for (const styleSheet of sheets) {
       promises.push(
         new Promise(function (res) {
-          var cssNodeArr: cssNodeObj
-          if (styleSheet.href !== null) {
-            // can be link tag
-            cssNodeArr = externalCssCache[styleSheet.href]
-            cssNodeArr.media = doc.styleSheets[x].media
-            traversalCSSRuleList(doc, externalCssCache, cssNodeArr).then(res)
+          const sheetHref = styleSheet.href
+          if (sheetHref !== null) {
+            // link tag (document ou shadow root)
+            const cssNodeArr = externalCssCache[sheetHref]
+            if (cssNodeArr) {
+              cssNodeArr.media = styleSheet.media
+              traversalCSSRuleList(doc, externalCssCache, cssNodeArr).then(res)
+            } else {
+              // cache miss (ex: <link> dans un shadow root, non préchargé) :
+              // lire le CSSOM de la feuille directement, puis fallback
+              // convLinkToText (fetch / devtools getResources)
+              const cssomText = getCssRulesText(styleSheet)
+              const parseAndStore = (raw: string) => {
+                convTextToRules(raw, sheetHref).then((cssNodeObj) => {
+                  cssNodeObj.media = styleSheet.media
+                  externalCssCache[sheetHref] = cssNodeObj
+                  traversalCSSRuleList(doc, externalCssCache, cssNodeObj).then(
+                    res
+                  )
+                })
+              }
+              if (cssomText !== null) {
+                parseAndStore(cssomText)
+              } else {
+                convLinkToText([sheetHref]).then((result) => {
+                  parseAndStore(result[0] ? result[0].cssraw : '')
+                })
+              }
+            }
           } else if (styleSheet.ownerNode instanceof Element) {
             // style tag
-            let html: string = styleSheet.ownerNode.innerHTML
+            // prefer the CSSOM: it reflects what the browser actually applies
+            // (including rules injected dynamically via insertRule),
+            // then fallback to the raw tag content
+            let html: string =
+              getCssRulesText(styleSheet) ?? styleSheet.ownerNode.innerHTML
             if (html === '') {
               // style may be in style-tag's cssRules but not show in innerHTML
-              for (
-                let index = 0;
-                index < doc.styleSheets[x].cssRules.length;
-                index++
-              ) {
-                const rule = doc.styleSheets[x].cssRules[index]
-                html += rule.cssText
+              try {
+                for (
+                  let index = 0;
+                  index < styleSheet.cssRules.length;
+                  index++
+                ) {
+                  const rule = styleSheet.cssRules[index]
+                  html += rule.cssText
+                }
+              } catch {
+                // feuille inaccessible
               }
             }
             // convert urls in style tag to abs
@@ -54,16 +89,26 @@ function generateRulesAll(
                 )
               }
             )
-            // the next operation is asynchronous
-            // store the current x value
-            let _x = x
             convTextToRules(html, doc.location.href).then((cssNodeObj) => {
-              cssNodeObj.media = doc.styleSheets[_x].media
+              cssNodeObj.media = styleSheet.media
               traversalCSSRuleList(doc, externalCssCache, cssNodeObj).then(res)
             })
           } else {
-            // console.log('ProcessingInstruction', styleSheet.ownerNode);
-            res({})
+            // adopted stylesheet (document.adoptedStyleSheets ou
+            // shadowRoot.adoptedStyleSheets) ou ProcessingInstruction
+            const cssomText = getCssRulesText(styleSheet)
+            if (cssomText !== null) {
+              convTextToRules(cssomText, doc.location.href).then(
+                (cssNodeObj) => {
+                  cssNodeObj.media = styleSheet.media
+                  traversalCSSRuleList(doc, externalCssCache, cssNodeObj).then(
+                    res
+                  )
+                }
+              )
+            } else {
+              res({})
+            }
           }
         })
       )

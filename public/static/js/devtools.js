@@ -1,5 +1,39 @@
 let panelVisible = false
 let isPageLoaded = true
+// P8 : évite de réinjecter le content script en boucle
+let contentScriptInjectionTried = false
+
+// P8 : si le content script n'est pas présent dans la page (ouverte avant
+// l'install/update de l'extension), l'injecter via chrome.scripting puis
+// relancer l'analyse une fois.
+function injectContentScriptAndRetry(cancel) {
+  if (contentScriptInjectionTried) {
+    return
+  }
+  contentScriptInjectionTried = true
+  if (!chrome.scripting || !chrome.scripting.executeScript) {
+    return
+  }
+  chrome.scripting.executeScript(
+    {
+      target: {
+        tabId: chrome.devtools.inspectedWindow.tabId,
+        allFrames: true,
+      },
+      files: ['assets/content.js'],
+    },
+    function () {
+      if (chrome.runtime.lastError) {
+        console.warn(
+          'CSS Used: content script injection failed:',
+          chrome.runtime.lastError
+        )
+        return
+      }
+      evalGetCssUsed(cancel)
+    }
+  )
+}
 
 function getAllFramesUrl() {
   const framesURLArray = []
@@ -40,7 +74,19 @@ function evalGetCssUsed(cancel = false) {
         },
         function (result, isException) {
           if (isException) {
-            console.log("evalGetCssUsed isException: ",isException);
+            console.log("evalGetCssUsed isException: ", isException);
+            // "getCssUsed is not defined" → le content script n'est pas
+            // injecté dans ce frame (P8) : injecter puis réessayer une fois
+            var desc =
+              (isException && (isException.description || isException.value)) ||
+              ''
+            if (
+              typeof desc === 'string' &&
+              desc.indexOf('getCssUsed') !== -1 &&
+              desc.indexOf('not defined') !== -1
+            ) {
+              injectContentScriptAndRetry(cancel)
+            }
           } else {
             // console.log('evalGetCssUsed result: ',result);
           }
@@ -101,22 +147,36 @@ chrome.devtools.panels.elements.createSidebarPane(
 
 // passing resources to content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // console.log('sender,message', sender, message)
   // Messages from content scripts should have sender.tab set
   if (sender.tab && sender.tab.id === chrome.devtools.inspectedWindow.tabId) {
     if (message.action == 'getResourceContent') {
       chrome.devtools.inspectedWindow.getResources((resources) => {
-        // console.log('resources', resources);
-        const resourceMatched = resources.find((r) => r.url === message.url)
-        resourceMatched.getContent((content, encoding) => {
-          // https://developer.chrome.com/docs/extensions/reference/devtools_inspectedWindow/#method-getResources
-          // encoding:Currently, only base64 is supported.
-          // console.log(resourceMatched, encoding, content.length);
-          sendResponse({
-            url: message.url,
-            content,
+        console.log('CSS Used: getResourceContent ->', message.url, resources.length)
+        // 1) match exato
+        let resourceMatched = resources.find((r) => r.url === message.url)
+
+        // 2) fallback: ignora query string (?...) e fragmento (#...)
+        if (!resourceMatched) {
+          const strip = (u) => (u || '').split('#')[0].split('?')[0]
+          resourceMatched = resources.find((r) => strip(r.url) === strip(message.url))
+        }
+
+        // 3) recurso não encontrado / já não acessível → responde em segurança
+        if (!resourceMatched) {
+          console.warn('CSS Used: recurso não encontrado ->', message.url)
+          sendResponse({ url: message.url, content: null })
+          return
+        }
+
+        // 4) getContent protegido
+        try {
+          resourceMatched.getContent((content, encoding) => {
+            sendResponse({ url: message.url, content, encoding })
           })
-        })
+        } catch (e) {
+          console.warn('CSS Used: getContent falhou ->', message.url, e)
+          sendResponse({ url: message.url, content: null })
+        }
       })
       // https://stackoverflow.com/questions/44056271/chrome-runtime-onmessage-response-with-async-await
       return true
