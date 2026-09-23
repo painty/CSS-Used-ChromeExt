@@ -113,7 +113,7 @@
     className = ' theme-' + chrome.devtools.panels.themeName
   }
 
-  chrome.runtime.onMessage.addListener(async (message, sender) => {
+  chrome.runtime.onMessage.addListener((message, sender) => {
     // console.log('sender,message from panel', sender, message)
     // console.log('sender.tab',sender.tab);
     tipsVisible = false
@@ -143,16 +143,17 @@
             popVisible = true
             popText = 'onNavigated'
           } else if (message.info === 'frameURLsEmpty') {
-            await updateAccessToURL()
-            popVisible = true
-            if (isGooglePreservedPages) {
-              popText =
-                'Extensions are not allowed to run on Chrome preserved pages.'
-            } else if (isFileProtocol) {
-              tipsVisible = true
-            } else {
-              popText = "Can't work on this page."
-            }
+            updateAccessToURL().then(() => {
+              popVisible = true
+              if (isGooglePreservedPages) {
+                popText =
+                  'Extensions are not allowed to run on Chrome preserved pages.'
+              } else if (isFileProtocol) {
+                tipsVisible = true
+              } else {
+                popText = "Can't work on this page."
+              }
+            })
           }
         }
       }
