@@ -130,4 +130,9 @@ chrome.runtime
     // console.log('error',error);
   })
 
+  // expõe getC como global 'getCssUsed' no mundo do content script,
+  // para o devtools.js poder chamar via inspectedWindow.eval(...)
+  ; (globalThis as any).getCssUsed = getC
+
+
 export default getC

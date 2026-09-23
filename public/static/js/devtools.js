@@ -40,7 +40,7 @@ function evalGetCssUsed(cancel = false) {
         },
         function (result, isException) {
           if (isException) {
-            console.log("evalGetCssUsed isException: ",isException);
+            console.log("evalGetCssUsed isException: ", isException);
           } else {
             // console.log('evalGetCssUsed result: ',result);
           }
@@ -100,23 +100,38 @@ chrome.devtools.panels.elements.createSidebarPane(
 )
 
 // passing resources to content script
+// passing resources to content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // console.log('sender,message', sender, message)
   // Messages from content scripts should have sender.tab set
   if (sender.tab && sender.tab.id === chrome.devtools.inspectedWindow.tabId) {
     if (message.action == 'getResourceContent') {
       chrome.devtools.inspectedWindow.getResources((resources) => {
-        // console.log('resources', resources);
-        const resourceMatched = resources.find((r) => r.url === message.url)
-        resourceMatched.getContent((content, encoding) => {
-          // https://developer.chrome.com/docs/extensions/reference/devtools_inspectedWindow/#method-getResources
-          // encoding:Currently, only base64 is supported.
-          // console.log(resourceMatched, encoding, content.length);
-          sendResponse({
-            url: message.url,
-            content,
+        console.log('CSS Used: getResourceContent ->', message.url, resources.length)
+        // 1) match exato
+        let resourceMatched = resources.find((r) => r.url === message.url)
+
+        // 2) fallback: ignora query string (?...) e fragmento (#...)
+        if (!resourceMatched) {
+          const strip = (u) => (u || '').split('#')[0].split('?')[0]
+          resourceMatched = resources.find((r) => strip(r.url) === strip(message.url))
+        }
+
+        // 3) recurso não encontrado / já não acessível → responde em segurança
+        if (!resourceMatched) {
+          console.warn('CSS Used: recurso não encontrado ->', message.url)
+          sendResponse({ url: message.url, content: null })
+          return
+        }
+
+        // 4) getContent protegido
+        try {
+          resourceMatched.getContent((content, encoding) => {
+            sendResponse({ url: message.url, content, encoding })
           })
-        })
+        } catch (e) {
+          console.warn('CSS Used: getContent falhou ->', message.url, e)
+          sendResponse({ url: message.url, content: null })
+        }
       })
       // https://stackoverflow.com/questions/44056271/chrome-runtime-onmessage-response-with-async-await
       return true
