@@ -1,6 +1,6 @@
 {
   "name": "CSS Used",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "permissions": ["tabs"],
   "optional_permissions": ["storage"],
   "author": "Bob",

@@ -1,3 +1,6 @@
+**ver 3.0.1 | 23/09/2026**
+1. Fix resource loading in recent Chrome versions by preventing an async message listener from intercepting responses. #63
+
 **ver 3.0.0 | 15/01/2023**
 
 1. Migrated to Manifest V3.
